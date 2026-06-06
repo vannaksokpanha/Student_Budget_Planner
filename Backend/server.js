@@ -1,17 +1,25 @@
-const http = require("http");
-const userRoutes = require("./Routes/userRoutes");
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config(); // to add .env to process.env
 
-const PORT = 5000;
+const db = require('./connectDb');
+const authRoutes = require('./Routes/authRoute');
 
-const server = http.createServer((req, res) => {
-  const handled = userRoutes(req, res);
+const PORT = process.env.PORT || 5000;
+const app = express();
 
-  if (handled === false) {
-    res.writeHead(404, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ message: "Route not found" }));
+app.use(cors());
+app.use(express.json());
+
+app.use('/api', authRoutes);
+
+app.listen(PORT, async () => {
+  try {
+    await db.getConnection();
+    console.log('Database connected successfully');
+    console.log(`Server running on http://localhost:${PORT}`);
+  } catch (err) {
+    console.error('Database connection failed:', err.message);
+    process.exit(1);
   }
-});
-
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
 });
