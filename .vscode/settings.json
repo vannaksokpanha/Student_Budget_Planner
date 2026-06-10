@@ -1,0 +1,11 @@
+{
+  "explorer.sortOrder": "filesFirst",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json"
+  },
+  "files.exclude": {
+    "**/dist": true,
+    "**/node_modules": true
+  }
+}
