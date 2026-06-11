@@ -1,7 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+<<<<<<< Updated upstream
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Home from './pages/Home.jsx'
+=======
+import Login from './login.jsx'
+>>>>>>> Stashed changes
 
 const App = () => {
   return (
