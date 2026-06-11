@@ -39,6 +39,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-blue-300">
       <NavBar />
+      <h1>HOME PAGE</h1>
     </div>
   )
 }
