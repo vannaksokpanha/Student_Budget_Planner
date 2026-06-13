@@ -62,7 +62,7 @@ const Login = () => {
       {/* Desktop (>=md) */}
       <div className="hidden md:flex min-h-screen">
         {/* Left side */}
-        <div className="flex-1 bg-blue-500 flex flex-col items-center justify-center p-12 border-r border-white/20">
+        <div className="flex-1 bg-violet-500 flex flex-col items-center justify-center p-12 border-r border-white/20">
           <div className="text-center">
             <h1 className='text-6xl font-bold text-white mb-4'>Balance</h1>
             <p className='text-xl text-white/80 mb-1'>Bills are tucked away</p>
