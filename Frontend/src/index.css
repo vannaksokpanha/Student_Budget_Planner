@@ -6,3 +6,34 @@ input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+@font-face {
+  font-family: 'CaustenRound';
+  /* The leading slash / tells the browser to look in the 'public' folder */
+  src: url('/fonts/CaustenRound-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'CaustenRound';
+  /* The leading slash / tells the browser to look in the 'public' folder */
+  src: url('/fonts/CaustenRound-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-causten: 'CaustenRound', sans-serif;
+
+  --color-brand-blue: #005CFF;
+  --color-brand-base: #6367FF;
+  --color-brand-white: #F5F5F5;
+  --color-brand-dark-violet: #454790;
+  --color-brand-light-pink: #FFDBFD;
+
+  /* Gradient */
+  --color-brand-gradient: linear-gradient(180deg, #005CFF 0%, #6367FF 100%);
+}

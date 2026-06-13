@@ -62,7 +62,7 @@ const Login = () => {
       {/* Desktop (>=md) */}
       <div className="hidden md:flex min-h-screen">
         {/* Left side */}
-        <div className="flex-1 bg-violet-500 flex flex-col items-center justify-center p-12 border-r border-white/20">
+        <div className="flex-1 bg-brand-base bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 flex flex-col items-center justify-center p-12 border-r border-white/20">
           <div className="text-center">
             <h1 className='text-6xl font-bold text-white mb-4'>Balance</h1>
             <p className='text-xl text-white/80 mb-1'>Bills are tucked away</p>
@@ -134,12 +134,12 @@ const Login = () => {
       </div>
 
       {/* Mobile (<md) */}
-      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-blue-500'>
+      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-[#6367FF] bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 h-64'>
         <div className="w-full max-w-sm">
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h2 className='text-5xl font-bold text-white'>Balance</h2>
+            <h2 className='text-6xl font-causten text-white'>Balance</h2>
             <p className="text-white mt-2">Bills are tucked away</p>
             <p className="text-white/70 text-sm">The rest is yours to play</p>
           </div>
@@ -152,7 +152,7 @@ const Login = () => {
               name='email'
               value={values.email}
               onChange={handleInput}
-              className='w-full px-4 py-3 bg-white/10 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20'
+              className='w-full px-4 py-3 bg-white border border-white/10 rounded-lg text-[#0F2854] placeholder-[#0F2854]/30 focus:outline-none focus:ring-2 focus:ring-white/20'
             />
             {error.email && <p className='text-red-300 text-xs mt-1'>{error.email}</p>}
             <input
@@ -161,14 +161,14 @@ const Login = () => {
               name='password'
               value={values.password}
               onChange={handleInput}
-              className='w-full px-4 py-3 bg-white/10 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20'
+              className='w-full px-4 py-3 bg-white border border-white/10 rounded-lg text-[#0F2854] placeholder-[#0F2854]/30 focus:outline-none focus:ring-2 focus:ring-white/20'
             />
             {error.password && <p className='text-red-300 text-xs mt-1'>{error.password}</p>}
 
             <button
               type='submit'
               disabled={loading}
-              className='w-full py-3 text-white bg-white/20 hover:bg-white/30 rounded-lg font-semibold transition-colors'
+              className='w-full py-3 text-white hover:text-white hover:bg-[#454790] bg-white/20 rounded-lg font-causten font-bold transition-colors'
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -181,7 +181,7 @@ const Login = () => {
 
             <button
               type='button'
-              className='w-full py-3 text-white bg-white/20 hover:bg-white/30 rounded-lg font-semibold transition-colors'
+              className='w-full py-3 text-brand-dark-violet hover:text-white bg-brand-light-pink hover:bg-brand-dark-violet rounded-lg font-semibold transition-colors'
             >
               Continue with Google
             </button>
