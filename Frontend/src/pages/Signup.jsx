@@ -142,7 +142,7 @@ const Signup = () => {
       </div>
 
       {/* Mobile (<md) */}
-      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-blue-500 '>
+      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 h-64'>
         <div className="w-full max-w-sm">
 
           {/* Header */}
@@ -150,7 +150,7 @@ const Signup = () => {
                 <Link to='/login' className='absolute top-4 left-4 text-white/80 hover:text-white flex items-center gap-1 text-sm transition-colors'><h1>Back</h1></Link>
               </div>
           <div className="text-center mb-8">
-            <h2 className='text-5xl font-bold text-white'>Balance</h2>
+            <h2 className='text-4xl font-causten font-extrabold text-white'>SIGN UP TO BALANCE</h2>
             <p className="text-white mt-2">Bills are tucked away</p>
             <p className="text-white/70 text-sm">The rest is yours to play</p>
           </div>
@@ -164,7 +164,7 @@ const Signup = () => {
               required
               value={values.name}
               onChange={handleInput}
-              className='w-full px-4 py-3 bg-white/10 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20'
+              className='w-full px-4 py-3 bg-white border border-white/10 rounded-lg text-brand-dark-violet placeholder-brand-dark-violet/30 focus:outline-none focus:ring-2 focus:ring-white/20'
             />
             {error.name && <p className='text-red-300 text-xs mt-1'>{error.name}</p>}
 
@@ -175,7 +175,7 @@ const Signup = () => {
               required
               value={values.email}
               onChange={handleInput}
-              className='w-full px-4 py-3 bg-white/10 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20'
+              className='w-full px-4 py-3 bg-white border border-white/10 rounded-lg text-brand-dark-violet placeholder-brand-dark-violet/30 focus:outline-none focus:ring-2 focus:ring-white/20'
             />
             {error.email && <p className='text-red-300 text-xs mt-1'>{error.email}</p>}
 
@@ -186,7 +186,7 @@ const Signup = () => {
               required
               value={values.password}
               onChange={handleInput}
-              className='w-full px-4 py-3 bg-white/10 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20'
+              className='w-full px-4 py-3 bg-white border border-white/10 rounded-lg text-brand-dark-violet placeholder-brand-dark-violet/30 focus:outline-none focus:ring-2 focus:ring-white/20'
             />
             {error.password && <p className='text-red-300 text-xs mt-1'>{error.password}</p>}
 
@@ -197,14 +197,14 @@ const Signup = () => {
               required
               value={values.confirmPassword}
               onChange={handleInput}
-              className='w-full px-4 py-3 bg-white/10 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20'
+              className='w-full px-4 py-3 bg-white border border-white/10 rounded-lg text-brand-dark-violet placeholder-brand-dark-violet/30 focus:outline-none focus:ring-2 focus:ring-white/20'
             />
             {error.confirmPassword && <p className='text-red-300 text-xs mt-1'>{error.confirmPassword}</p>}
 
             <button
               type='submit'
               disabled={loading}
-              className='w-full py-3 text-white bg-white/20 hover:bg-white/30 rounded-lg font-semibold transition-colors'
+              className='w-full border-brand-dark-violet py-3 text-brand-dark-violet bg-brand-light-pink hover:text-white hover:bg-brand-dark-violet rounded-lg font-semibold transition-colors'
             >
               {loading ? 'Signing up...' : 'Sign up'}
             </button>

@@ -15,18 +15,14 @@ const NavBar = () => {
                             <button
                                 key={item.name}
                                 onClick={() => navigate(item.path)}
-                                className={`flex items-center justify-center gap-2 border-b-2 px-5 py-2 font-semibold transition-colors duration-200 ${
+                                className={`group flex items-center justify-center gap-2 border-b-2 px-5 py-2 font-semibold transition duration-200 ${
                                     location.pathname === item.path
-                                        ? 'text-primary-600 border-primary-600'
-                                        : 'border-transparent text-gray-500 hover:text-primary-600 hover:border-primary-300'
+                                        ? 'text-brand-dark-violet border-brand-dark-violet'
+                                        : 'border-transparent text-gray-500 hover:text-brand-dark-violet'
                                 }`}
                             >
-                                {item.icon && (
-                                    <img
-                                        src={item.icon}
-                                        alt=""
-                                        className="size-5 object-contain"
-                                    />
+                                {item.Icon && (
+                                    <item.Icon className="w-5 h-5 fill-current transition duration-200 group-hover:scale-110 group-hover:text-black" />
                                 )}
                                 <span>{item.name}</span>
                             </button>
@@ -43,22 +39,18 @@ const NavBar = () => {
                             key={item.name}
                             onClick={() => navigate(item.path)}
                             className={`
-                                flex flex-col items-center justify-center
-                                flex-1 py-1.5 transition-colors duration-200
+                                group flex flex-col items-center justify-center
+                                flex-1 py-1.5 transition duration-200 transform
 
                                 ${
                                     location.pathname === item.path
-                                        ? 'text-primary-600'
-                                        : 'text-gray-500 hover:text-primary-600'
+                                        ? 'text-brand-dark-violet'
+                                        : 'text-gray-500 hover:text-brand-dark-violet hover:scale-105'
                                 }
                             `}
                         >
-                            {item.icon && (
-                                <img
-                                    src={item.icon}
-                                    alt=""
-                                    className="size-6 object-contain"
-                                />
+                            {item.Icon && (
+                                <item.Icon className="w-6 h-6 fill-current transition duration-200 group-hover:scale-110 group-hover:text-brand-dark-violet" />
                             )}
                             <span
                                 className={`font-medium text-xs sm:text-sm mt-1 border-b ${
@@ -74,7 +66,7 @@ const NavBar = () => {
                 </div>
             </div>
         </>
-    );
+    )
 };
 
 export default NavBar;
