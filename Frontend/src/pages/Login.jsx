@@ -64,17 +64,17 @@ const Login = () => {
         {/* Left side */}
         <div className="flex-1 bg-brand-base bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 flex flex-col items-center justify-center p-12 border-r border-white/20">
           <div className="text-center">
-            <h1 className='text-6xl font-bold text-white mb-4'>Balance</h1>
-            <p className='text-xl text-white/80 mb-1'>Bills are tucked away</p>
-            <p className='text-lg text-white/60'>The rest is yours to play</p>
+            <h1 className='text-7xl font-causten font-extrabold text-white '>Balance</h1>
+            <p className='text-xl font-causten font-semibold text-white/80 '>Bills are tucked away</p>
+            <p className='text-lg font-causten font-semibold text-white/60'>The rest is yours to play</p>
           </div>
         </div>
         {/* Right Side */}
-        <div className="flex-2 bg-blue-500 flex items-center justify-center p-8"> 
+        <div className="flex-2 bg-white flex items-center justify-center p-8"> 
           <div className="w-full max-w-md">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-12 border border-white/10">
+            <div className="bg-brand-base bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 backdrop-blur-sm rounded-xl p-12 border border-white/10">
               <div className="text-center mb-10">
-                <h2 className='text-2xl text-white/80 mb-2'>Welcome Back</h2>
+                <h2 className='text-4xl font-causten font-bold text-white '>Welcome Back</h2>
                 <p className='text-lg text-white/80'>Sign in to your account</p>
               </div>
               <form onSubmit={handleSubmit} className='space-y-6'>
@@ -85,7 +85,7 @@ const Login = () => {
                     type='email' 
                     value={values.email}  
                     onChange={handleInput}
-                    className='w-full px-4 py-3 bg-white/5 border border-white/5 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20'
+                    className='w-full px-4 py-3 bg-white border border-white/5 rounded-lg text-brand-dark-violet placeholder-brand-dark-violet/30 focus:outline-none focus:ring-2 focus:ring-white/20'
                   />
                   {error.email && <p className='text-red-300 text-sm mt-1'>{error.email}</p>}
                 </div>
@@ -96,7 +96,7 @@ const Login = () => {
                     type='password'
                     value={values.password}
                     onChange={handleInput}
-                    className='w-full px-4 py-3 bg-white/5 border border-white/5 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/20'
+                    className='w-full px-4 py-3 bg-white border border-white/5 rounded-lg text-brand-dark-violet placeholder-brand-dark-violet/30 focus:outline-none focus:ring-2 focus:ring-white/20'
                   />
                   {<p className='text-red-300 text-sm mt-1'>{error.password}</p>}
                 </div>
@@ -105,7 +105,7 @@ const Login = () => {
                   name='bbb'
                   type='submit'
                   disabled={loading}
-                  className='w-full py-3 bg-white/20 hover:bg-white/30 rounded-lg font-semibold text-white transition-colors'
+                  className='w-full py-3 bg-white/20 hover:bg-brand-dark-violet rounded-lg font-semibold text-white transition-colors'
                 >
                   {loading ? 'Signing in...' : 'Sign in'}
                 </button>
@@ -117,7 +117,7 @@ const Login = () => {
                 </div>
                 <button
                   type='button'
-                  className='w-full py-3 bg-white/20 hover:bg-white/30 rounded-lg font-semibold text-white transition-colors'
+                  className='w-full py-3 bg-brand-light-pink hover:bg-brand-dark-violet rounded-lg font-semibold text-brand-dark-violet hover:text-white transition-colors'
                 >
                   <span className='text-lg'>CONTINUE WITH GOOGLE</span>
                 </button>
@@ -139,10 +139,10 @@ const Login = () => {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h2 className='text-6xl font-causten text-white'>Balance</h2>
-            <p className="text-white mt-2">Bills are tucked away</p>
-            <p className="text-white/70 text-sm">The rest is yours to play</p>
-          </div>
+            <h2 className='text-6xl font-causten font-extrabold text-white'>Balance</h2>
+            <p className="text-white font-causten font-semibold ">Bills are tucked away,</p>
+            <p className="text-white/70 font-causten font-semibold ">The rest is yours to play.</p>
+          </div> 
 
           {/* Form */}
           <form onSubmit={handleSubmit} className='space-y-3'> {/* removed action="" */}

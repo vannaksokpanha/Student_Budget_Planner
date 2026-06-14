@@ -204,7 +204,7 @@ const Signup = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full py-3 text-brand-dark-violet bg-brand-light-pink hover:text-white hover:bg-brand-dark-violet rounded-lg font-semibold transition-colors'
+              className='w-full border-brand-dark-violet py-3 text-brand-dark-violet bg-brand-light-pink hover:text-white hover:bg-brand-dark-violet rounded-lg font-semibold transition-colors'
             >
               {loading ? 'Signing up...' : 'Sign up'}
             </button>

@@ -25,6 +25,15 @@ input:-webkit-autofill:focus {
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'CaustenRound';
+  /* The leading slash / tells the browser to look in the 'public' folder */
+  src: url('/fonts/CaustenRound-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-causten: 'CaustenRound', sans-serif;
 
