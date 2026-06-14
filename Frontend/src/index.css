@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+body {
+  font-family: "Poppins", sans-serif;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
@@ -9,7 +13,6 @@ input:-webkit-autofill:focus {
 
 @font-face {
   font-family: 'CaustenRound';
-  /* The leading slash / tells the browser to look in the 'public' folder */
   src: url('/fonts/CaustenRound-ExtraBold.otf') format('opentype');
   font-weight: 800;
   font-style: normal;
@@ -18,7 +21,6 @@ input:-webkit-autofill:focus {
 
 @font-face {
   font-family: 'CaustenRound';
-  /* The leading slash / tells the browser to look in the 'public' folder */
   src: url('/fonts/CaustenRound-Bold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
@@ -43,6 +45,5 @@ input:-webkit-autofill:focus {
   --color-brand-dark-violet: #454790;
   --color-brand-light-pink: #FFDBFD;
 
-  /* Gradient */
   --color-brand-gradient: linear-gradient(180deg, #005CFF 0%, #6367FF 100%);
 }
