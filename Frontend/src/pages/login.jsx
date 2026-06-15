@@ -1,166 +1,204 @@
 import { useState } from 'react'
-
-
+import { Link,useNavigate } from 'react-router-dom'
+import { validation } from '../validations/auth/loginValidation.js'
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(true)
+  const navigate = useNavigate();
+
+  const [values, setValues] = useState({
+    email: '',
+    password: ''
+  })
+
+  const [error, setError] = useState({})
+  const [loading ,setLoading] = useState(false)
 
   const handleSubmit = async (event) => {
-    event.preventDefault()
-    const data = { 
-      email,
-      password,
-      rememberMe,
+    event.preventDefault();
+
+     const validationErrors = validation(values);
+     setError(validationErrors);
+
+    if(Object.keys(validationErrors).length !== 0){
+      return;
     }
-    try{
-      const response = await fetch('http://localhost:5000/login', {
+
+    try {
+      setLoading(true);
+
+      const res = await fetch('http://localhost:3000/api/auth/login' , {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      const result = await response.json();
-      console.log(result);
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(values)
+
+      })
+      const data = await res.json();
+
+      if (res.ok){
+        localStorage.setItem('token', data.token)   // store token in local storage 
+        localStorage.setItem('userName', data.user.name) 
+        navigate('/home')
+      }
+      else {
+        setError({ email: data.message });
+      }
     }
-    catch(error){
-      console.error('Login error:', error)
+    catch (err){
+      console.error(err)
+      setError({ email: 'Something went wrong' });
+    } 
+    finally {
+        setLoading(false);
     }
-    
+
+  }
+
+  const handleInput = (event) => {
+    setValues(prev => ({ ...prev, [event.target.name]: event.target.value }))
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),_transparent_35%),linear-gradient(135deg,_#0f172a_0%,_#111827_45%,_#1e293b_100%)] px-4 py-8 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center">
-        <div className="grid w-full overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-slate-950/40 backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="relative hidden flex-col justify-between overflow-hidden p-10 lg:flex">
-            <div className="absolute inset-0 bg-[linear-gradient(160deg,_rgba(14,165,233,0.22),_rgba(15,23,42,0.08)_45%,_transparent)]" />
-            <div className="relative z-10 max-w-lg">
-              <span className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
-                Student Budget Planner
-              </span>
-              <h1 className="mt-6 text-5xl font-semibold leading-tight text-white">
-                Keep your money organized without the clutter.
-              </h1>
-              <p className="mt-5 text-base leading-7 text-slate-300">
-                Track spending, watch your balances, and stay in control of your
-                budget from one clean dashboard.
-              </p>
-            </div>
+    <div className='min-h-screen bg-blue-300'>
 
-            <div className="relative z-10 grid gap-4 text-sm text-slate-300">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                Plan monthly expenses and see what is left at a glance.
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                Simple sign in flow ready to connect to your backend later.
-              </div>
-            </div>
+      {/* Desktop (>=md) */}
+      <div className="hidden md:flex min-h-screen">
+        {/* Left side */}
+        <div className="flex-1 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 flex flex-col items-center justify-center p-12 border-r border-white/20">
+          <div className="text-center">
+            <h1 className='text-7xl font-causten font-extrabold text-white '>Balance</h1>
+            <p className='text-xl font-causten font-semibold text-white/80 '>Bills are tucked away</p>
+            <p className='text-lg font-causten font-semibold text-white/60'>The rest is yours to play</p>
           </div>
-
-          <div className="bg-slate-950/80 p-6 sm:p-10 lg:p-12">
-            <div className="mx-auto max-w-md">
-              <div className="mb-8 lg:hidden">
-                <span className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
-                  Student Budget Planner
-                </span>
-                <h1 className="mt-4 text-3xl font-semibold text-white">
-                  Sign in to your account
-                </h1>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Manage budgets, track expenses, and keep everything in one
-                  place.
-                </p>
+        </div>
+        {/* Right Side */}
+        <div className="flex-2 bg-white flex items-center justify-center p-8"> 
+          <div className="w-full max-w-md">
+            <div className="bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 backdrop-blur-sm rounded-xl p-12 border border-white/10">
+              <div className="text-center mb-10">
+                <h2 className='text-4xl font-causten font-bold text-white '>Welcome Back</h2>
+                <p className='text-lg text-white/80'>Sign in to your account</p>
               </div>
-
-              <div className="mb-8 hidden lg:block">
-                <h2 className="text-3xl font-semibold text-white">Welcome back</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Enter your details to continue to your dashboard.
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className='space-y-6'>
                 <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-2 block text-sm font-medium text-slate-200"
-                  >
-                    Email address
-                  </label>
                   <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400/60 focus:bg-white/8 focus:ring-4 focus:ring-cyan-400/10"
-                    autoComplete="email"
-                    required
+                    placeholder='Enter your email'
+                    name='email'
+                    type='email' 
+                    value={values.email}  
+                    onChange={handleInput}
+                    className='w-full px-4 py-3 bg-white border border-white/5 rounded-lg text-brand-dark-violet placeholder-brand-dark-violet/30 focus:outline-none focus:ring-2 focus:ring-white/20'
                   />
+                  {error.email && <p className='text-red-300 text-sm mt-1'>{error.email}</p>}
                 </div>
-
                 <div>
-                  <label
-                    htmlFor="password"
-                    className="mb-2 block text-sm font-medium text-slate-200"
-                  >
-                    Password
-                  </label>
                   <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400/60 focus:bg-white/8 focus:ring-4 focus:ring-cyan-400/10"
-                    autoComplete="current-password"
-                    required
+                    placeholder='Enter your password'
+                    name='password'
+                    type='password'
+                    value={values.password}
+                    onChange={handleInput}
+                    className='w-full px-4 py-3 bg-white border border-white/5 rounded-lg text-brand-dark-violet placeholder-brand-dark-violet/30 focus:outline-none focus:ring-2 focus:ring-white/20'
                   />
-                </div>
-
-                <div className="flex items-center justify-between gap-4 text-sm text-slate-300">
-                  <label className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(event) => setRememberMe(event.target.checked)}
-                      className="h-4 w-4 rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400"
-                    />
-                    Remember me
-                  </label>
-
-                  <a
-                    href="#"
-                    className="font-medium text-cyan-300 transition hover:text-cyan-200"
-                  >
-                    Forgot password?
-                  </a>
+                  {<p className='text-red-300 text-sm mt-1'>{error.password}</p>}
                 </div>
 
                 <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-400/20"
+                  name='bbb'
+                  type='submit'
+                  disabled={loading}
+                  className='w-full py-3 bg-white/20 hover:bg-brand-dark-violet rounded-lg font-semibold text-white transition-colors'
                 >
-                  Sign in
+                  {loading ? 'Signing in...' : 'Sign in'}
                 </button>
-              </form>
 
-              <p className="mt-8 text-center text-sm text-slate-400">
-                New here?{' '}
-                <a href="#" className="font-medium text-cyan-300 hover:text-cyan-200">
-                  Create an account
-                </a>
-              </p>
+                <div className="flex items-center gap-3 my-2">
+                  <div className="flex-1 h-px bg-white/70"></div>
+                  <span className='text-white/90 text-lg'>OR</span>
+                  <div className="flex-1 h-px bg-white/70"></div>
+                </div>
+                <button
+                  type='button'
+                  className='w-full py-3 bg-brand-light-pink hover:bg-brand-dark-violet rounded-lg font-semibold text-brand-dark-violet hover:text-white transition-colors'
+                >
+                  <span className='text-lg'>CONTINUE WITH GOOGLE</span>
+                </button>
+                <p className='text-center text-white/60 text-sm pt-2'>
+                  Don't have an account?{' '}
+                  <Link to="/signup" className="text-white font-semibold hover:underline">
+                    Sign up
+                  </Link>
+                </p>
+              </form>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Mobile (<md) */}
+      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 h-64'>
+        <div className="w-full max-w-sm">
+
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h2 className='text-6xl font-causten font-extrabold text-white'>Balance</h2>
+            <p className="text-white font-causten font-semibold ">Bills are tucked away,</p>
+            <p className="text-white/70 font-causten font-semibold ">The rest is yours to play.</p>
+          </div> 
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className='space-y-3'> {/* removed action="" */}
+            <input
+              placeholder='Enter your email'
+              type='email'
+              name='email'
+              value={values.email}
+              onChange={handleInput}
+              className='w-full px-4 py-3 bg-white border border-white/10 rounded-lg text-[#0F2854] placeholder-[#0F2854]/30 focus:outline-none focus:ring-2 focus:ring-white/20'
+            />
+            {error.email && <p className='text-red-300 text-xs mt-1'>{error.email}</p>}
+            <input
+              placeholder='Enter your password'
+              type='password'
+              name='password'
+              value={values.password}
+              onChange={handleInput}
+              className='w-full px-4 py-3 bg-white border border-white/10 rounded-lg text-[#0F2854] placeholder-[#0F2854]/30 focus:outline-none focus:ring-2 focus:ring-white/20'
+            />
+            {error.password && <p className='text-red-300 text-xs mt-1'>{error.password}</p>}
+
+            <button
+              type='submit'
+              disabled={loading}
+              className='w-full py-3 text-white hover:text-white hover:bg-brand-dark-violet bg-white/20 rounded-lg font-causten font-bold transition-colors'
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+
+            <div className="flex items-center gap-3 my-2">
+              <div className="flex-1 h-px bg-white/70"></div>
+              <span className='text-white/80 text-sm'>OR</span>
+              <div className="flex-1 h-px bg-white/70"></div>
+            </div>
+
+            <button
+              type='button'
+              className='w-full py-3 text-brand-dark-violet hover:text-white bg-brand-light-pink hover:bg-brand-dark-violet rounded-lg font-semibold transition-colors'
+            >
+              Continue with Google
+            </button>
+
+            <p className='text-center text-white/60 text-xs pt-1'>
+              Don't have an account?{' '}
+              <Link to="/signup" className="text-white font-semibold hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </form>
+
+        </div>
+      </div>
+
     </div>
   )
 }
-
-
 
 export default Login
