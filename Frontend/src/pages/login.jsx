@@ -62,7 +62,7 @@ const Login = () => {
       {/* Desktop (>=md) */}
       <div className="hidden md:flex min-h-screen">
         {/* Left side */}
-        <div className="flex-1 bg-brand-base bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 flex flex-col items-center justify-center p-12 border-r border-white/20">
+        <div className="flex-1 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 flex flex-col items-center justify-center p-12 border-r border-white/20">
           <div className="text-center">
             <h1 className='text-7xl font-causten font-extrabold text-white '>Balance</h1>
             <p className='text-xl font-causten font-semibold text-white/80 '>Bills are tucked away</p>
@@ -72,7 +72,7 @@ const Login = () => {
         {/* Right Side */}
         <div className="flex-2 bg-white flex items-center justify-center p-8"> 
           <div className="w-full max-w-md">
-            <div className="bg-brand-base bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 backdrop-blur-sm rounded-xl p-12 border border-white/10">
+            <div className="bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 backdrop-blur-sm rounded-xl p-12 border border-white/10">
               <div className="text-center mb-10">
                 <h2 className='text-4xl font-causten font-bold text-white '>Welcome Back</h2>
                 <p className='text-lg text-white/80'>Sign in to your account</p>
@@ -134,7 +134,7 @@ const Login = () => {
       </div>
 
       {/* Mobile (<md) */}
-      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-[#6367FF] bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 h-64'>
+      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 h-64'>
         <div className="w-full max-w-sm">
 
           {/* Header */}
@@ -168,7 +168,7 @@ const Login = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full py-3 text-white hover:text-white hover:bg-[#454790] bg-white/20 rounded-lg font-causten font-bold transition-colors'
+              className='w-full py-3 text-white hover:text-white hover:bg-brand-dark-violet bg-white/20 rounded-lg font-causten font-bold transition-colors'
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
