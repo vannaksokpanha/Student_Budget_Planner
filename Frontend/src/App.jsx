@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
-import Login from './pages/Login.jsx'
+import Login from './pages/login.jsx'
 import Signup from './pages/Signup.jsx'
 import Home from './pages/Home.jsx'
 import SetUp from './pages/SetUp.jsx'
@@ -20,10 +20,10 @@ const App = () => {
         <Route path="/home" element={<Home />} />
         <Route path="/expense" element={<Expense />} />
         <Route path="/expenses" element={<Expense />} />
-        {/* <Route path="/setup" element={<SetUp />} />
+        <Route path="/setup" element={<SetUp />} />
         <Route path="/savings" element={<Savings />} />
         <Route path="/summary" element={<Summary />} />
-        <Route path="/profile" element={<Profile />} /> */}
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   )
