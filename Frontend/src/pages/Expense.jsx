@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
-import NavBar from '../components/NavBar'
 
 const catIcons = {
   'Rental Fee': { icon: 'fa-home', bg: '#4A5CFF' },
@@ -51,7 +50,7 @@ const Expense = () => {
         }
         setReady(true)
       }
-      catch (err) {
+      catch {
         navigate("/login", { replace: true })
       }
     }
@@ -121,25 +120,25 @@ const Expense = () => {
   if (!ready) return null;
 
   return (
-    <div className="font-sans bg-blue-50 min-h-screen flex justify-center items-start py-5 pb-[90px] md:py-10 md:px-5 md:bg-[#eef0ff]">
-      <div className="app w-full mx-auto relative max-w-[430px] md:max-w-[480px]">
+    <div className="font-sans bg-blue-50 min-h-screen flex justify-center items-start py-5 pb-22.5 md:py-10 md:px-5 md:bg-[#eef0ff]">
+      <div className="app w-full mx-auto relative max-w107.5 md:max-w-120">
         {/* Header */}
-        <div className="header bg-gradient-to-br from-[#4A5CFF] to-[#6A7BFF] px-6 pt-5 pb-[60px] rounded-b-[28px] relative flex items-center justify-center">
-          <div className="back-btn absolute left-5 top-1/2 -translate-y-1/2 text-white text-xl cursor-pointer p-[6px] rounded-full hover:bg-white/15 transition-all duration-300" onClick={() => navigate('/home')}>
+        <div className="header bg-linear-to-br from-[#4A5CFF] to-[#6A7BFF] px-6 pt-5 pb-15 rounded-b-[28px] relative flex items-center justify-center">
+          <div className="back-btn absolute left-5 top-1/2 -translate-y-1/2 text-white text-xl cursor-pointer p-1.5rounded-full hover:bg-white/15 transition-all duration-300" onClick={() => navigate('/home')}>
             <i className="fas fa-arrow-left"></i>
           </div>
           <h1 className="text-white text-[22px] font-bold tracking-[1.2px] max-[380px]:text-lg">EXPENSES</h1>
         </div>
 
         {/* Toggle Pills */}
-        <div className="toggle-wrap flex justify-center -mt-7 relative z-[2]">
-          <div className="toggle-pills flex bg-white/90 backdrop-blur-[10px] rounded-[50px] p-[5px] shadow-[0_4px_20px_rgba(74,92,255,0.12)] gap-1">
+        <div className="toggle-wrap flex justify-center -mt-7 relative z-2">
+          <div className="toggle-pills flex bg-white/90 backdrop-blur-2.5py-2.5 rounded-[50px] p-1.25 shadow-[0_4px_20px_rgba(74,92,255,0.12)] gap-1">
             <button
-              className={`pill px-7 py-[10px] rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'monthly' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
+              className={`pill px-7 py-2.5 rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'monthly' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
               onClick={() => setTab('monthly')}
             >Monthly Expenses</button>
             <button
-              className={`pill px-7 py-[10px] rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'daily' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
+              className={`pill px-7 py-2.5 rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'daily' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
               onClick={() => setTab('daily')}
             >Daily Expenses</button>
           </div>
@@ -170,14 +169,14 @@ const Expense = () => {
                 <div id="expenseListView">
                   <div className="text-center mb-[18px]">
                     <button
-                      className="add-expense-btn bg-gradient-to-br from-[#4A5CFF] to-[#6A7BFF] text-white px-8 py-[14px] rounded-[50px] text-[15px] font-semibold cursor-pointer shadow-[0_6px_20px_rgba(74,92,255,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(74,92,255,0.35)] active:translate-y-0 inline-flex items-center gap-[10px] transition-all duration-300"
+                      className="add-expense-btn bg-gradient-to-br from-[#4A5CFF] to-[#6A7BFF] text-white px-8 py-[14px] rounded-[50px] text-[15px] font-semibold cursor-pointer shadow-[0_6px_20px_rgba(74,92,255,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(74,92,255,0.35)] active:translate-y-0 inline-flex items-center gap-2.5py-2.5 transition-all duration-300"
                       onClick={() => setShowForm(true)}
                     >
                       <i className="fas fa-plus"></i> Add your monthly expense
                     </button>
                   </div>
 
-                  <div className="expense-list flex flex-col gap-[10px] mb-[18px]" id="expenseList">
+                  <div className="expense-list flex flex-col gap-2.5py-2.5 mb-[18px]" id="expenseList">
                     {expenses.length === 0 ? (
                       <div className="text-center text-gray-400 px-5 py-[30px]">
                         <i className="fas fa-receipt text-4xl opacity-40 mb-3 block"></i>
@@ -345,24 +344,24 @@ const Expense = () => {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="bottom-nav fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white flex justify-around py-[10px] pb-[14px] rounded-t-[24px] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-[100] md:max-w-[480px]">
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-[10px] font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/home')}>
+        <div className="bottom-nav fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white flex justify-around py-2.5 pb-[14px] rounded-t-[24px] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-[100] md:max-w-[480px]">
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/home')}>
             <i className="fas fa-home text-lg"></i>
             <span>Home</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-[#4A5CFF] text-[10px] font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent">
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-[#4A5CFF] text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent">
             <i className="fas fa-credit-card text-lg"></i>
             <span>Expenses</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-[10px] font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/savings')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/savings')}>
             <i className="fas fa-piggy-bank text-lg"></i>
             <span>Savings</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-[10px] font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/summary')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/summary')}>
             <i className="fas fa-chart-pie text-lg"></i>
             <span>Summary</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-[10px] font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/profile')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/profile')}>
             <i className="fas fa-user text-lg"></i>
             <span>Profile</span>
           </a>
