@@ -20,7 +20,11 @@ const App = () => {
         <Route path="/home" element={<Home />} />
         <Route path="/setup" element={<SetUp />} />
         <Route path="/expense" element={<Expense />} />
+<<<<<<< Updated upstream
         <Route path="/expenses" element={<Expense />} />
+=======
+        <Route path="/setup" element={<SetUp />} />
+>>>>>>> Stashed changes
         <Route path="/savings" element={<Savings />} />
         <Route path="/summary" element={<Summary />} />
         <Route path="/profile" element={<Profile />} />

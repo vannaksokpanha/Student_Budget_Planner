@@ -21,7 +21,7 @@ const Home = () => {
           cache: 'no-store'
         })
         if (!res.ok) {
-          setError('Unauthorizeddddddddddddddddd');
+          setError('Unauthorized');
           return;
         }
         setReady(true)

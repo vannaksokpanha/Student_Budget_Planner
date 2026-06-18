@@ -46,6 +46,7 @@ const Expense = () => {
         })
         if (!res.ok) {
           setError('Unauthorized access. Please log in again.');
+
           return;
         }
         setReady(true)

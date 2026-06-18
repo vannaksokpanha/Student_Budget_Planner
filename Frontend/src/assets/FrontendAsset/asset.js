@@ -6,7 +6,7 @@ import { CgProfile } from "react-icons/cg";
 
 export const navItems = [
     { name: 'HOME', path: '/home', Icon: RiHome3Line },
-    { name: 'EXPENSES', path: '/expenses', Icon: TbChecklist },
+    { name: 'EXPENSES', path: '/expense', Icon: TbChecklist },
     { name: 'SAVINGS', path: '/savings', Icon: LiaPiggyBankSolid },
     { name: 'SUMMARY', path: '/summary', Icon: FaChartSimple },
     { name: 'PROFILE', path: '/profile', Icon: CgProfile }
