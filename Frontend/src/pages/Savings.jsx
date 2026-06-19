@@ -26,7 +26,7 @@ const Savings = () => {
         }
         setReady(true)
       }
-      catch (err) {
+      catch {
         navigate("/login", { replace: true })
       }
     }

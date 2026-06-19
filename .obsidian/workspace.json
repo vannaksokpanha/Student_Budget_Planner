@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "ab9002939eb70bca",
+        "id": "0926680cf73b375c",
         "type": "tabs",
         "children": [
           {
-            "id": "bb520c5ae62338a3",
+            "id": "ab6482319190d992",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Task.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "Task"
+              "title": "New tab"
             }
           }
         ]
@@ -94,7 +90,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Task.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +99,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Task"
+              "title": "Backlinks"
             }
           },
           {
@@ -113,12 +108,11 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Task.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Task"
+              "title": "Outgoing links"
             }
           },
           {
@@ -164,13 +158,23 @@
               "icon": "lucide-list",
               "title": "Outline of Task"
             }
+          },
+          {
+            "id": "a8c5a297bc17c8bc",
+            "type": "leaf",
+            "state": {
+              "type": "calendar",
+              "state": {},
+              "icon": "calendar-with-checkmark",
+              "title": "Calendar"
+            }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -183,8 +187,9 @@
       "bases:Create new base": false
     }
   },
-  "active": "bb520c5ae62338a3",
+  "active": "ab6482319190d992",
   "lastOpenFiles": [
+    "Untitled.md",
     "Task.md",
     "Untitled"
   ]

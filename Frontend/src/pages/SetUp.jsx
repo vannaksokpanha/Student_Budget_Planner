@@ -1,7 +1,7 @@
 const SetUp = () => {
   return (
     
-    <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base bg-gradient-to-b from-[#005CFF]/30 to-[#F5F5F5]/30 h-64'>
+    <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 h-64'>
         <div className="w-full max-w-sm">
             {/* Header */}
             <div className="text-left">

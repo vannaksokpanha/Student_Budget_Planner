@@ -21,12 +21,12 @@ const Home = () => {
           cache: 'no-store'
         })
         if (!res.ok) {
-          setError('Unauthorizeddddddddddddddddd');
+          setError('Unauthorized');
           return;
         }
         setReady(true)
       }
-      catch (err) {
+      catch {
         navigate("/login", { replace: true })
       }
     }
@@ -39,7 +39,9 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-blue-300">
       <NavBar />
-      <h1>HOME PAGE</h1>
+      <div className="">
+        
+      </div>
     </div>
   )
 }

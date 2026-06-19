@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, 'config', '.env') });
 
-const db = require('./config/connectDb');
+const sequelize = require('./config/database');
+require('./models/associations');
 const authRoutes = require('./Routes/authRoute');
 const homeRoutes = require('./Routes/homeRoute');
 
@@ -17,10 +19,13 @@ app.use('/api/home', homeRoutes);
 
 app.listen(PORT, async () => {
   try {
-    const connection = await db.getConnection();
-    connection.release();
-
+    await sequelize.authenticate();
     console.log('Database connected successfully');
+
+    // This creates missing tables from your models.
+    await sequelize.sync();
+    console.log('Models synchronized with database');
+
     console.log(`Server running on http://localhost:${PORT}`);
   } catch (err) {
     console.error('Database connection failed:', err.message);

@@ -21,12 +21,12 @@ const Profile = () => {
           cache: 'no-store'
         })
         if (!res.ok) {
-          setError('Unauthorizeddddddddddddddddd');
+          setError('Unauthorized');
           return;
         }
         setReady(true)
       }
-      catch (err) {
+      catch {
         navigate("/login", { replace: true })
       }
     }
