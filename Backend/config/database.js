@@ -2,7 +2,7 @@ const {Sequelize} = require('sequelize');
 const dotenv = require('dotenv');
 const path = require('path');
 
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+dotenv.config({ path: path.join(__dirname, '..', '.env'), override: true });
 
 const sequelize  = new Sequelize(
     process.env.DB_NAME,

@@ -1,6 +1,7 @@
- import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar'
+import SavingsCard from '../components/GoalCard'
 
 const Savings = () => {
   const [ready, setReady] = useState(false);
@@ -59,15 +60,21 @@ const Savings = () => {
               </div>
           </div>
         </div>
-
-        <div className="w-[95%] min-h-[60px] bg-white mt-4 rounded-3xl"></div>
       </section>
 
       
       <section className="flex flex-col items-center ">
-        <h2 className="font-causten font-bold text-white text-2xl ">YOUR GOALS</h2>
+        <div className="w-[95%] mb-3 mt-5 flex justify-between items-center"> 
+          <h2 className="font-causten font-bold text-white text-2xl ">YOUR GOALS</h2>
+          <button className="group inline-flex items-center justify-center bg-white border-brand-dark-violet/50 border-2 text-brand-dark-violet hover:bg-brand-dark-violet hover:text-white font-medium px-4 py-1 rounded-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-blue-500/30">
+            <span class="text-xl leading-none">+</span>
+            <span class="text-white max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 ease-in-out group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
+              Add Goal
+            </span>
+          </button>
+        </div>
+        
         <div className="flex flex-col items-center "></div>
-        <div className="w-[95%] min-h-[100px] bg-white rounded-3xl "></div>
       </section>
       <NavBar />
       
