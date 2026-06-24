@@ -121,35 +121,35 @@ const Expense = () => {
   if (!ready) return null;
 
   return (
-    <div className="font-sans bg-blue-50 min-h-screen flex justify-center items-start py-5 pb-22.5 md:py-10 md:px-5 md:bg-[#eef0ff]">
-      <div className="app w-full mx-auto relative max-w107.5 md:max-w-120">
+    <div className="font-sans bg-blue-50 min-h-screen flex justify-center items-start px-4 py-5 pb-28 sm:px-6 md:py-10 md:bg-[#eef0ff]">
+      <div className="app w-full mx-auto relative max-w-6xl lg:max-w-7xl">
         {/* Header */}
-        <div className="header bg-linear-to-br from-[#4A5CFF] to-[#6A7BFF] px-6 pt-5 pb-15 rounded-b-[28px] relative flex items-center justify-center">
-          <div className="back-btn absolute left-5 top-1/2 -translate-y-1/2 text-white text-xl cursor-pointer p-1.5rounded-full hover:bg-white/15 transition-all duration-300" onClick={() => navigate('/home')}>
+        <div className="header bg-linear-to-br from-[#4A5CFF] to-[#6A7BFF] px-5 sm:px-8 pt-5 pb-14 sm:pb-16 rounded-b-[28px] relative flex items-center justify-center">
+          <div className="back-btn absolute left-5 top-1/2 -translate-y-1/2 text-white text-xl cursor-pointer p-1.5 rounded-full hover:bg-white/15 transition-all duration-300" onClick={() => navigate('/home')}>
             <i className="fas fa-arrow-left"></i>
           </div>
           <h1 className="text-white text-[22px] font-bold tracking-[1.2px] max-[380px]:text-lg">EXPENSES</h1>
         </div>
 
         {/* Toggle Pills */}
-        <div className="toggle-wrap flex justify-center -mt-7 relative z-2">
-          <div className="toggle-pills flex bg-white/90 backdrop-blur-2.5py-2.5 rounded-[50px] p-1.25 shadow-[0_4px_20px_rgba(74,92,255,0.12)] gap-1">
+        <div className="toggle-wrap flex justify-center -mt-7 relative z-2 px-2 sm:px-0">
+          <div className="toggle-pills flex bg-white/90 backdrop-blur-sm py-1.5 rounded-[50px] p-1 shadow-[0_4px_20px_rgba(74,92,255,0.12)] gap-1 w-full max-w-[360px] sm:max-w-none sm:w-auto">
             <button
-              className={`pill px-7 py-2.5 rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'monthly' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
+              className={`pill flex-1 sm:flex-none px-5 sm:px-7 py-2.5 rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'monthly' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
               onClick={() => setTab('monthly')}
             >Monthly Expenses</button>
             <button
-              className={`pill px-7 py-2.5 rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'daily' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
+              className={`pill flex-1 sm:flex-none px-5 sm:px-7 py-2.5 rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'daily' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
               onClick={() => setTab('daily')}
             >Daily Expenses</button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="content px-4 py-5">
+        <div className="content px-0 sm:px-4 py-5 lg:px-6">
           {/* Savings Card */}
-          <div className="savings-card bg-gradient-to-br from-[#fce4ec] to-[#f3e5f5] rounded-[18px] px-6 py-5 max-[380px]:p-4 flex items-center justify-between shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5">
-            <div className="flex items-center gap-3.5">
+          <div className="savings-card bg-gradient-to-br from-[#fce4ec] to-[#f3e5f5] rounded-[18px] px-5 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5">
+            <div className="flex items-center gap-3.5 min-w-0">
               <div className="w-[50px] h-[50px] bg-white/70 rounded-full flex items-center justify-center text-[22px] text-[#2A3BCC]">
                 <i className="fas fa-piggy-bank"></i>
               </div>
@@ -158,26 +158,26 @@ const Expense = () => {
                 <div className="amount text-[22px] font-extrabold text-gray-900 mt-0.5 max-[380px]:text-lg">$25 <small className="text-sm font-semibold text-gray-500">/ 10%</small></div>
               </div>
             </div>
-            <div className="badge bg-white px-4 py-2 rounded-[50px] text-sm font-bold text-[#2A3BCC] shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+            <div className="badge bg-white px-4 py-2 rounded-[50px] text-sm font-bold text-[#2A3BCC] shadow-[0_2px_8px_rgba(0,0,0,0.06)] self-start sm:self-auto">
               <i className="fas fa-chevron-right"></i>
             </div>
           </div>
 
           {/* Monthly Content */}
           {tab === 'monthly' && (
-            <div id="monthlyContent">
+            <div id="monthlyContent" className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start">
               {!showForm ? (
-                <div id="expenseListView">
+                <div id="expenseListView" className="min-w-0">
                   <div className="text-center mb-[18px]">
                     <button
-                      className="add-expense-btn bg-gradient-to-br from-[#4A5CFF] to-[#6A7BFF] text-white px-8 py-3.5 rounded-[50px] text-[15px] font-semibold cursor-pointer shadow-[0_6px_20px_rgba(74,92,255,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(74,92,255,0.35)] active:translate-y-0 inline-flex items-center gap-2.5py-2.5 transition-all duration-300"
+                      className="add-expense-btn bg-gradient-to-br from-[#4A5CFF] to-[#6A7BFF] text-white px-6 sm:px-8 py-3.5 rounded-[50px] text-[15px] font-semibold cursor-pointer shadow-[0_6px_20px_rgba(74,92,255,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(74,92,255,0.35)] active:translate-y-0 inline-flex items-center gap-2.5 transition-all duration-300 w-full sm:w-auto justify-center"
                       onClick={() => setShowForm(true)}
                     >
                       <i className="fas fa-plus"></i> Add your monthly expense
                     </button>
                   </div>
 
-                  <div className="expense-list flex flex-col gap-2.5py-2.5 mb-[18px]" id="expenseList">
+                  <div className="expense-list flex flex-col gap-2.5 mb-[18px]" id="expenseList">
                     {expenses.length === 0 ? (
                       <div className="text-center text-gray-400 px-5 py-[30px]">
                         <i className="fas fa-receipt text-4xl opacity-40 mb-3 block"></i>
@@ -187,7 +187,7 @@ const Expense = () => {
                       expenses.map(e => {
                         const ci = catIcons[e.category] || catIcons['Other'];
                         return (
-                          <div key={e.id} className="expense-item bg-white rounded-[12px] px-[18px] py-3.5 flex items-center gap-3.5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition-all duration-300 animate-slide-in">
+                          <div key={e.id} className="expense-item bg-white rounded-[12px] px-4 sm:px-[18px] py-3.5 flex items-center gap-3.5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition-all duration-300 animate-slide-in">
                             <div className="w-10 h-10 rounded-[12px] flex items-center justify-center text-base text-white shrink-0" style={{ background: ci.bg }}>
                               <i className={`fas ${ci.icon}`}></i>
                             </div>
@@ -195,7 +195,7 @@ const Expense = () => {
                               <div className="text-sm font-semibold text-gray-900">{e.category}</div>
                               <div className="text-xs text-gray-400 mt-0.5 truncate">{e.note || 'No note'}</div>
                             </div>
-                            <div className="text-base font-bold text-gray-900 whitespace-nowrap">${e.price.toFixed(2)}</div>
+                            <div className="text-sm sm:text-base font-bold text-gray-900 whitespace-nowrap">${e.price.toFixed(2)}</div>
                             <button
                               className="w-[30px] h-[30px] rounded-full bg-red-100 text-red-500 cursor-pointer text-xs flex items-center justify-center transition-all duration-300 shrink-0 hover:bg-red-500 hover:text-white border-none"
                               onClick={() => deleteExpense(e.id)}
@@ -219,19 +219,9 @@ const Expense = () => {
                     <div className="check w-9 h-9 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center text-base shrink-0"><i className="fas fa-check"></i></div>
                     <p className="text-[13px] text-gray-500 leading-relaxed">The expense was successfully calculated and meets your remaining budget for daily spending.</p>
                   </div>
-
-                  <div className="monthly-summary bg-white rounded-[18px] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)]">
-                    <div className="head flex justify-between items-center mb-3.5">
-                      <h4 className="text-[13px] text-gray-500 font-semibold tracking-[0.5px]"><i className="fas fa-calendar-alt"></i> YOUR MONTHLY EXPENSES</h4>
-                      <span className="month text-sm font-bold text-[#2A3BCC] bg-[#eef0ff] px-3.5 py-1 rounded-[50px]" id="currentMonth">{setCurrentMonth()}</span>
-                    </div>
-                    <div className="total-amount text-[32px] font-extrabold text-gray-900">
-                      <span className="currency text-xl">$</span><span id="monthlyTotalDisplay">{totalMonthly.toFixed(2)}</span>
-                    </div>
-                  </div>
                 </div>
               ) : (
-                <div id="addExpenseView">
+                <div id="addExpenseView" className="min-w-0">
                   <div className="form-card bg-white rounded-[18px] px-5 py-6 shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5">
                     <h2 className="text-lg font-bold text-gray-900 mb-5 text-center"><i className="fas fa-plus-circle"></i> Add New Expense</h2>
 
@@ -292,13 +282,23 @@ const Expense = () => {
                   </div>
                 </div>
               )}
+
+              <div className="monthly-summary bg-white rounded-[18px] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] lg:sticky lg:top-6">
+                <div className="head flex justify-between items-center mb-3.5">
+                  <h4 className="text-[13px] text-gray-500 font-semibold tracking-[0.5px]"><i className="fas fa-calendar-alt"></i> YOUR MONTHLY EXPENSES</h4>
+                  <span className="month text-sm font-bold text-[#2A3BCC] bg-[#eef0ff] px-3.5 py-1 rounded-[50px]" id="currentMonth">{setCurrentMonth()}</span>
+                </div>
+                <div className="total-amount text-[32px] font-extrabold text-gray-900">
+                  <span className="currency text-xl">$</span><span id="monthlyTotalDisplay">{totalMonthly.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Daily Content */}
           {tab === 'daily' && (
-            <div id="dailyContent">
-              <div className="budget-cards grid grid-cols-2 gap-3 mb-5">
+            <div id="dailyContent" className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-6 lg:items-start">
+              <div className="budget-cards grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 mb-5 lg:mb-0">
                 <div className="budget-card bg-white rounded-[12px] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] text-center">
                   <div className="label text-xs text-gray-400 font-semibold tracking-[0.3px]">START TODAY</div>
                   <div className="value text-[22px] font-extrabold text-[#4A5CFF] mt-[6px]" id="startToday">${startBudget.toFixed(2)}</div>
@@ -309,32 +309,34 @@ const Expense = () => {
                 </div>
               </div>
 
-              <div className="summary-table-wrap bg-white rounded-[18px] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5">
+              <div className="summary-table-wrap bg-white rounded-[18px] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5 lg:mb-0 min-w-0">
                 <h4 className="px-5 pt-4 text-sm text-gray-500 font-semibold tracking-[0.5px]"><i className="fas fa-table"></i> EXPENSE SUMMARY</h4>
-                <table className="summary-table w-full border-collapse text-[13px]">
-                  <thead>
-                    <tr>
-                      <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Category</th>
-                      <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Note</th>
-                      <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Qty</th>
-                      <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody id="summaryTableBody">
-                    {expenses.length === 0 ? (
-                      <tr><td colSpan="4" className="text-center text-gray-400 p-5">No expenses recorded</td></tr>
-                    ) : (
-                      Object.entries(grouped).map(([cat, data]) => (
-                        <tr key={cat}>
-                          <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{cat}</td>
-                          <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{data.note}</td>
-                          <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{data.count}</td>
-                          <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">${data.total.toFixed(2)}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="summary-table w-full min-w-[560px] border-collapse text-[13px]">
+                    <thead>
+                      <tr>
+                        <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Category</th>
+                        <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Note</th>
+                        <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Qty</th>
+                        <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody id="summaryTableBody">
+                      {expenses.length === 0 ? (
+                        <tr><td colSpan="4" className="text-center text-gray-400 p-5">No expenses recorded</td></tr>
+                      ) : (
+                        Object.entries(grouped).map(([cat, data]) => (
+                          <tr key={cat}>
+                            <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{cat}</td>
+                            <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{data.note}</td>
+                            <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{data.count}</td>
+                            <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">${data.total.toFixed(2)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
                 <div className="px-5 py-3.5 border-t-2 border-[#f3f4f6] flex justify-between items-center">
                   <span className="font-bold text-gray-900 text-sm">TOTAL AMOUNT</span>
                   <span className="font-extrabold text-[#4A5CFF] text-xl" id="totalAmountDisplay">${grandTotal.toFixed(2)}</span>
@@ -345,24 +347,24 @@ const Expense = () => {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="bottom-nav fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white flex justify-around py-2.5 pb-3.5 rounded-t-[24px] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-[100] md:max-w-[480px]">
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/home')}>
+        <div className="bottom-nav fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-[520px] bg-white flex justify-around py-2.5 pb-3.5 rounded-t-[24px] rounded-b-[24px] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-[100] md:bottom-5">
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/home')}>
             <i className="fas fa-home text-lg"></i>
             <span>Home</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-[#4A5CFF] text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent">
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-[#4A5CFF] text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent">
             <i className="fas fa-credit-card text-lg"></i>
             <span>Expenses</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/savings')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/savings')}>
             <i className="fas fa-piggy-bank text-lg"></i>
             <span>Savings</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/summary')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/summary')}>
             <i className="fas fa-chart-pie text-lg"></i>
             <span>Summary</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-2.5py-2.5 font-semibold transition-all duration-300 no-underline px-3 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/profile')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/profile')}>
             <i className="fas fa-user text-lg"></i>
             <span>Profile</span>
           </a>
