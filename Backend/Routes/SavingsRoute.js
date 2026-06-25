@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, signup } = require('../Controllers/authController');
-
+const verifyToken = require('../middleware/authMiddleware');
 const {
     get_Goals,
     add_Goal,
@@ -9,9 +8,9 @@ const {
     update_Savings
 } = require('../Controllers/SavingsController.js');
 
-router.get('/', get_Goals);
-router.post('/', add_Goal);
-router.put('/:id', update_Savings);
-router.delete('/:id', delete_Goal);
+router.get('/', verifyToken, get_Goals);
+router.post('/', verifyToken, add_Goal);
+router.put('/:id', verifyToken, update_Savings);
+router.delete('/:id', verifyToken, delete_Goal);
 
-module.export = router;
+module.exports = router;

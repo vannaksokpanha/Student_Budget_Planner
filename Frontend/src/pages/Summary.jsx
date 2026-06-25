@@ -21,7 +21,7 @@ const Summary = () => {
           cache: 'no-store'
         })
         if (!res.ok) {
-          setError('Unauthorizeddddddddddddddddd');
+          setError('Unauthorized');
           return;
         }
         setReady(true)
@@ -37,9 +37,11 @@ const Summary = () => {
   if (!ready) return null;
 
   return (
-    <div className="min-h-screen bg-blue-300">
+    <div className="md:hidden min-h-screen pt-10 pb-28 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30">
+      <div className="text-center">
+        <h1 className="text-3xl text-white font-causten font-bold">SUMMARY</h1>
+      </div>
       <NavBar />
-      <h1>Summary PAGE</h1>
     </div>
   )
 }
