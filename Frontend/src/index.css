@@ -39,6 +39,14 @@ input:-webkit-autofill:focus {
   font-display: swap;
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @theme {
   --font-causten: 'CaustenRound', sans-serif;
 

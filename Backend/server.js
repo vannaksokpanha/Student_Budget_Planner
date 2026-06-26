@@ -7,6 +7,8 @@ const sequelize = require('./config/database');
 require('./models/associations');
 const authRoutes = require('./Routes/authRoute');
 const homeRoutes = require('./Routes/homeRoute');
+const expenseRoutes = require('./Routes/expenseRoute');
+const savingsRoutes = require('./Routes/SavingsRoute');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -16,6 +18,8 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/home', homeRoutes);
+app.use('/api/expenses', expenseRoutes);
+app.use('/api/savings', savingsRoutes);
 
 app.listen(PORT, async () => {
   try {
