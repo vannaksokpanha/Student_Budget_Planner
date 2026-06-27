@@ -1,377 +1,203 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { TbTrash, TbPlus, TbX } from "react-icons/tb";
+import NavBar from '../components/NavBar';
 
-const catIcons = {
-  'Rental Fee': { icon: 'fa-home', bg: '#4A5CFF' },
-  'Groceries': { icon: 'fa-shopping-basket', bg: '#10b981' },
-  'Food & Drink': { icon: 'fa-utensils', bg: '#f59e0b' },
-  'Bills': { icon: 'fa-file-invoice', bg: '#ef4444' },
-  'Transportation': { icon: 'fa-car', bg: '#8b5cf6' },
-  'Other': { icon: 'fa-ellipsis-h', bg: '#6b7280' }
+const LIABILITY_CATEGORIES = ['Rent', 'Groceries', 'Utilities', 'Transport', 'School Fees', 'Other'];
+
+const isTokenValid = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
 };
 
-const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+const daysRemainingInMonth = () => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return lastDay - now.getDate() + 1;
+};
 
 const Expense = () => {
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState(null);
+  const [income, setIncome] = useState('');
+  const [liabilities, setLiabilities] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: '', category: 'Rent', amount: '' });
   const navigate = useNavigate();
 
-  const [tab, setTab] = useState('monthly');
-  const [showForm, setShowForm] = useState(false);
-  const [expenses, setExpenses] = useState(() => JSON.parse(localStorage.getItem('expenses')) || []);
-  const [resultVisible, setResultVisible] = useState(false);
-
-  const dateRef = useRef(null);
-
-  const [form, setForm] = useState({
-    category: 'Rental Fee',
-    price: '',
-    note: '',
-    date: new Date().toISOString().split('T')[0]
-  });
-
   useEffect(() => {
-    const verify = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        return navigate("/login", { replace: true });
-      }
-      try {
-        const res = await fetch("http://localhost:3000/api/home/home", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          cache: 'no-store'
-        })
-        if (!res.ok) {
-          setError('Unauthorized access. Please log in again.');
-
-          return;
-        }
-        setReady(true)
-      }
-      catch {
-        navigate("/login", { replace: true })
-      }
+    const token = localStorage.getItem('token');
+    if (!token || !isTokenValid(token)) {
+      navigate('/login', { replace: true });
     }
-    verify();
-  }, [navigate])
+  }, [navigate]);
 
-  useEffect(() => {
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-  }, [expenses]);
-
-  const setCurrentMonth = () => {
-    const d = new Date();
-    return `${months[d.getMonth()]}, ${d.getFullYear()}`;
-  };
-
-  const handleAddExpense = () => {
-    const price = parseFloat(form.price);
-    if (!price || price <= 0) {
-      alert('Please enter a valid price.');
-      return;
-    }
-
-    const expense = {
+  const handleAddLiability = () => {
+    if (!form.amount || isNaN(parseFloat(form.amount))) return;
+    setLiabilities(prev => [...prev, {
+      id: Date.now(),
+      name: form.name || form.category,
       category: form.category,
-      price,
-      note: form.note.trim(),
-      date: form.date,
-      id: Date.now()
-    };
-
-    setExpenses(prev => [...prev, expense]);
-    setForm({ category: 'Rental Fee', price: '', note: '', date: new Date().toISOString().split('T')[0] });
+      amount: parseFloat(form.amount),
+    }]);
+    setForm({ name: '', category: 'Rent', amount: '' });
     setShowForm(false);
-    setResultVisible(false);
   };
 
-  const deleteExpense = (id) => {
-    setExpenses(prev => prev.filter(e => e.id !== id));
-    setResultVisible(false);
-  };
+  const handleDelete = (id) => setLiabilities(prev => prev.filter(l => l.id !== id));
 
-  const calculateTotal = () => {
-    setResultVisible(true);
-  };
-
-  const resetForm = () => {
-    setForm({ category: 'Rental Fee', price: '', note: '', date: new Date().toISOString().split('T')[0] });
-  };
-
-  const totalMonthly = expenses.reduce((sum, e) => sum + e.price, 0);
-
-  const grouped = {};
-  expenses.forEach(e => {
-    if (!grouped[e.category]) grouped[e.category] = { count: 0, total: 0, note: '' };
-    grouped[e.category].count += 1;
-    grouped[e.category].total += e.price;
-    grouped[e.category].note = e.note || '-';
-  });
-
-  let grandTotal = 0;
-  Object.values(grouped).forEach(d => { grandTotal += d.total; });
-
-  const startBudget = 10.00;
-  const endBudget = Math.max(0, startBudget - totalMonthly);
-
-  if (error) return <div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">{error}</h1></div>;
-  if (!ready) return null;
+  const totalLiabilities = liabilities.reduce((sum, l) => sum + l.amount, 0);
+  const available = Math.max(0, parseFloat(income || 0) - totalLiabilities);
+  const daysLeft = daysRemainingInMonth();
+  const dailyAllowance = daysLeft > 0 ? available / daysLeft : 0;
 
   return (
-    <div className="font-sans bg-blue-50 min-h-screen flex justify-center items-start px-4 py-5 pb-28 sm:px-6 md:py-10 md:bg-[#eef0ff]">
-      <div className="app w-full mx-auto relative max-w-6xl lg:max-w-7xl">
-        {/* Header */}
-        <div className="header bg-linear-to-br from-[#4A5CFF] to-[#6A7BFF] px-5 sm:px-8 pt-5 pb-14 sm:pb-16 rounded-b-[28px] relative flex items-center justify-center">
-          <div className="back-btn absolute left-5 top-1/2 -translate-y-1/2 text-white text-xl cursor-pointer p-1.5 rounded-full hover:bg-white/15 transition-all duration-300" onClick={() => navigate('/home')}>
-            <i className="fas fa-arrow-left"></i>
+    <div className="min-h-screen bg-brand-white pb-24">
+
+      {/* Header */}
+      <div
+        className="px-5 pt-12 pb-10 bg-brand-base"
+        style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
+      >
+        <p className="text-white/60 text-sm font-causten">Manage your</p>
+        <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Budget</h1>
+      </div>
+
+      <div className="mx-4 space-y-4 -mt-5">
+
+        {/* Income card */}
+        <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
+          <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest mb-4">Monthly Income</p>
+          <div className="flex items-center gap-2">
+            <span className="text-4xl font-causten font-extrabold text-brand-dark-violet">$</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              placeholder="0.00"
+              value={income}
+              onChange={e => setIncome(e.target.value)}
+              className="flex-1 text-4xl font-causten font-extrabold text-brand-dark-violet placeholder-gray-200 border-none outline-none bg-transparent min-w-0"
+            />
           </div>
-          <h1 className="text-white text-[22px] font-bold tracking-[1.2px] max-[380px]:text-lg">EXPENSES</h1>
         </div>
 
-        {/* Toggle Pills */}
-        <div className="toggle-wrap flex justify-center -mt-7 relative z-2 px-2 sm:px-0">
-          <div className="toggle-pills flex bg-white/90 backdrop-blur-sm py-1.5 rounded-[50px] p-1 shadow-[0_4px_20px_rgba(74,92,255,0.12)] gap-1 w-full max-w-[360px] sm:max-w-none sm:w-auto">
+        {/* Liabilities */}
+        <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest">Monthly Liabilities</p>
             <button
-              className={`pill flex-1 sm:flex-none px-5 sm:px-7 py-2.5 rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'monthly' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
-              onClick={() => setTab('monthly')}
-            >Monthly Expenses</button>
-            <button
-              className={`pill flex-1 sm:flex-none px-5 sm:px-7 py-2.5 rounded-[50px] cursor-pointer text-sm font-semibold transition-all duration-300 max-[380px]:px-[18px] max-[380px]:py-2 max-[380px]:text-xs ${tab === 'daily' ? 'bg-[#2A3BCC] text-white shadow-[0_4px_12px_rgba(42,59,204,0.3)]' : 'bg-transparent text-gray-500'}`}
-              onClick={() => setTab('daily')}
-            >Daily Expenses</button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="content px-0 sm:px-4 py-5 lg:px-6">
-          {/* Savings Card */}
-          <div className="savings-card bg-gradient-to-br from-[#fce4ec] to-[#f3e5f5] rounded-[18px] px-5 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-[50px] h-[50px] bg-white/70 rounded-full flex items-center justify-center text-[22px] text-[#2A3BCC]">
-                <i className="fas fa-piggy-bank"></i>
-              </div>
-              <div className="info">
-                <h3 className="text-[11px] text-gray-500 tracking-[1px] font-bold">SEE WHERE YOUR MONEY GOES!</h3>
-                <div className="amount text-[22px] font-extrabold text-gray-900 mt-0.5 max-[380px]:text-lg">$25 <small className="text-sm font-semibold text-gray-500">/ 10%</small></div>
-              </div>
-            </div>
-            <div className="badge bg-white px-4 py-2 rounded-[50px] text-sm font-bold text-[#2A3BCC] shadow-[0_2px_8px_rgba(0,0,0,0.06)] self-start sm:self-auto">
-              <i className="fas fa-chevron-right"></i>
-            </div>
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-1 bg-brand-dark-violet text-white px-3 py-1.5 rounded-lg text-xs font-causten font-bold"
+            >
+              <TbPlus className="w-3.5 h-3.5" /> ADD
+            </button>
           </div>
 
-          {/* Monthly Content */}
-          {tab === 'monthly' && (
-            <div id="monthlyContent" className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start">
-              {!showForm ? (
-                <div id="expenseListView" className="min-w-0">
-                  <div className="text-center mb-[18px]">
-                    <button
-                      className="add-expense-btn bg-gradient-to-br from-[#4A5CFF] to-[#6A7BFF] text-white px-6 sm:px-8 py-3.5 rounded-[50px] text-[15px] font-semibold cursor-pointer shadow-[0_6px_20px_rgba(74,92,255,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(74,92,255,0.35)] active:translate-y-0 inline-flex items-center gap-2.5 transition-all duration-300 w-full sm:w-auto justify-center"
-                      onClick={() => setShowForm(true)}
-                    >
-                      <i className="fas fa-plus"></i> Add your monthly expense
+          {liabilities.length === 0 ? (
+            <p className="text-gray-300 text-sm text-center py-4">No liabilities added yet</p>
+          ) : (
+            <div className="space-y-2">
+              {liabilities.map(l => (
+                <div key={l.id} className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">
+                  <div>
+                    <p className="text-brand-dark-violet font-semibold text-sm">{l.name}</p>
+                    <p className="text-gray-300 text-xs">{l.category}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-brand-dark-violet font-causten font-bold">${l.amount.toFixed(2)}</p>
+                    <button onClick={() => handleDelete(l.id)}>
+                      <TbTrash className="w-4 h-4 text-gray-300 hover:text-red-400 transition-colors" />
                     </button>
                   </div>
-
-                  <div className="expense-list flex flex-col gap-2.5 mb-[18px]" id="expenseList">
-                    {expenses.length === 0 ? (
-                      <div className="text-center text-gray-400 px-5 py-[30px]">
-                        <i className="fas fa-receipt text-4xl opacity-40 mb-3 block"></i>
-                        <p className="text-sm">No expenses yet. Add your first one!</p>
-                      </div>
-                    ) : (
-                      expenses.map(e => {
-                        const ci = catIcons[e.category] || catIcons['Other'];
-                        return (
-                          <div key={e.id} className="expense-item bg-white rounded-[12px] px-4 sm:px-[18px] py-3.5 flex items-center gap-3.5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition-all duration-300 animate-slide-in">
-                            <div className="w-10 h-10 rounded-[12px] flex items-center justify-center text-base text-white shrink-0" style={{ background: ci.bg }}>
-                              <i className={`fas ${ci.icon}`}></i>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-semibold text-gray-900">{e.category}</div>
-                              <div className="text-xs text-gray-400 mt-0.5 truncate">{e.note || 'No note'}</div>
-                            </div>
-                            <div className="text-sm sm:text-base font-bold text-gray-900 whitespace-nowrap">${e.price.toFixed(2)}</div>
-                            <button
-                              className="w-[30px] h-[30px] rounded-full bg-red-100 text-red-500 cursor-pointer text-xs flex items-center justify-center transition-all duration-300 shrink-0 hover:bg-red-500 hover:text-white border-none"
-                              onClick={() => deleteExpense(e.id)}
-                            >
-                              <i className="fas fa-times"></i>
-                            </button>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  <button
-                    className="calc-btn w-full py-4 bg-gradient-to-br from-[#4A5CFF] to-[#6A7BFF] text-white rounded-[50px] text-base font-bold cursor-pointer shadow-[0_6px_20px_rgba(74,92,255,0.25)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(74,92,255,0.35)] transition-all duration-300 tracking-[0.5px] mb-3.5"
-                    onClick={calculateTotal}
-                  >
-                    <i className="fas fa-calculator"></i> CALCULATE
-                  </button>
-
-                  <div className={`${resultVisible ? 'flex' : 'hidden'} bg-white rounded-[12px] px-5 py-4 items-center gap-3 shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5`} id="resultMsg">
-                    <div className="check w-9 h-9 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center text-base shrink-0"><i className="fas fa-check"></i></div>
-                    <p className="text-[13px] text-gray-500 leading-relaxed">The expense was successfully calculated and meets your remaining budget for daily spending.</p>
-                  </div>
                 </div>
-              ) : (
-                <div id="addExpenseView" className="min-w-0">
-                  <div className="form-card bg-white rounded-[18px] px-5 py-6 shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5">
-                    <h2 className="text-lg font-bold text-gray-900 mb-5 text-center"><i className="fas fa-plus-circle"></i> Add New Expense</h2>
-
-                    <div className="mb-4">
-                      <label className="block text-[13px] font-semibold text-gray-500 mb-[6px]"><i className="fas fa-tag"></i> Category</label>
-                      <select
-                        className="w-full px-3.5 py-3 border-2 border-gray-200 rounded-[12px] text-sm font-[inherit] focus:border-[#4A5CFF] bg-[#fafbff] outline-none transition-all duration-300"
-                        value={form.category}
-                        onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                      >
-                        <option value="Rental Fee">Rental Fee</option>
-                        <option value="Groceries">Groceries</option>
-                        <option value="Food & Drink">Food & Drink</option>
-                        <option value="Bills">Bills</option>
-                        <option value="Transportation">Transportation</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-[13px] font-semibold text-gray-500 mb-[6px]"><i className="fas fa-dollar-sign"></i> Price</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                        className="w-full px-3.5 py-3 border-2 border-gray-200 rounded-[12px] text-sm font-[inherit] focus:border-[#4A5CFF] bg-[#fafbff] outline-none transition-all duration-300"
-                        value={form.price}
-                        onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-[13px] font-semibold text-gray-500 mb-[6px]"><i className="fas fa-pen"></i> Your Note</label>
-                      <textarea
-                        placeholder="Optional note..."
-                        className="w-full px-3.5 py-3 border-2 border-gray-200 rounded-[12px] text-sm font-[inherit] focus:border-[#4A5CFF] bg-[#fafbff] outline-none transition-all duration-300 resize-y min-h-[60px]"
-                        value={form.note}
-                        onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
-                      ></textarea>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-[13px] font-semibold text-gray-500 mb-[6px]"><i className="fas fa-calendar"></i> Date</label>
-                      <input
-                        type="date"
-                        className="w-full px-3.5 py-3 border-2 border-gray-200 rounded-[12px] text-sm font-[inherit] focus:border-[#4A5CFF] bg-[#fafbff] outline-none transition-all duration-300"
-                        value={form.date}
-                        ref={dateRef}
-                        onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-                      />
-                    </div>
-
-                    <div className="flex gap-3 mt-2">
-                      <button className="flex-1 py-3.5 rounded-[12px] text-[15px] font-semibold cursor-pointer transition-all duration-300 bg-gray-100 text-gray-500 hover:bg-gray-200" onClick={resetForm}><i className="fas fa-undo"></i> Reset</button>
-                      <button className="flex-1 py-3.5 rounded-[12px] text-[15px] font-semibold cursor-pointer transition-all duration-300 bg-gradient-to-br from-[#4A5CFF] to-[#6A7BFF] text-white shadow-[0_4px_14px_rgba(74,92,255,0.25)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(74,92,255,0.35)]" onClick={handleAddExpense}><i className="fas fa-check"></i> Add Expense</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="monthly-summary bg-white rounded-[18px] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] lg:sticky lg:top-6">
-                <div className="head flex justify-between items-center mb-3.5">
-                  <h4 className="text-[13px] text-gray-500 font-semibold tracking-[0.5px]"><i className="fas fa-calendar-alt"></i> YOUR MONTHLY EXPENSES</h4>
-                  <span className="month text-sm font-bold text-[#2A3BCC] bg-[#eef0ff] px-3.5 py-1 rounded-[50px]" id="currentMonth">{setCurrentMonth()}</span>
-                </div>
-                <div className="total-amount text-[32px] font-extrabold text-gray-900">
-                  <span className="currency text-xl">$</span><span id="monthlyTotalDisplay">{totalMonthly.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Daily Content */}
-          {tab === 'daily' && (
-            <div id="dailyContent" className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-6 lg:items-start">
-              <div className="budget-cards grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 mb-5 lg:mb-0">
-                <div className="budget-card bg-white rounded-[12px] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] text-center">
-                  <div className="label text-xs text-gray-400 font-semibold tracking-[0.3px]">START TODAY</div>
-                  <div className="value text-[22px] font-extrabold text-[#4A5CFF] mt-[6px]" id="startToday">${startBudget.toFixed(2)}</div>
-                </div>
-                <div className="budget-card bg-white rounded-[12px] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] text-center">
-                  <div className="label text-xs text-gray-400 font-semibold tracking-[0.3px]">END TODAY</div>
-                  <div className="value text-[22px] font-extrabold text-red-500 mt-[6px]" id="endToday">${endBudget.toFixed(2)}</div>
-                </div>
-              </div>
-
-              <div className="summary-table-wrap bg-white rounded-[18px] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.06)] mb-5 lg:mb-0 min-w-0">
-                <h4 className="px-5 pt-4 text-sm text-gray-500 font-semibold tracking-[0.5px]"><i className="fas fa-table"></i> EXPENSE SUMMARY</h4>
-                <div className="overflow-x-auto">
-                  <table className="summary-table w-full min-w-[560px] border-collapse text-[13px]">
-                    <thead>
-                      <tr>
-                        <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Category</th>
-                        <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Note</th>
-                        <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Qty</th>
-                        <th className="px-3.5 py-3 text-left font-semibold text-gray-400 text-[11px] uppercase tracking-[0.5px] border-b-2 border-gray-100">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody id="summaryTableBody">
-                      {expenses.length === 0 ? (
-                        <tr><td colSpan="4" className="text-center text-gray-400 p-5">No expenses recorded</td></tr>
-                      ) : (
-                        Object.entries(grouped).map(([cat, data]) => (
-                          <tr key={cat}>
-                            <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{cat}</td>
-                            <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{data.note}</td>
-                            <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">{data.count}</td>
-                            <td className="px-3.5 py-3 text-gray-900 border-b border-gray-50">${data.total.toFixed(2)}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="px-5 py-3.5 border-t-2 border-[#f3f4f6] flex justify-between items-center">
-                  <span className="font-bold text-gray-900 text-sm">TOTAL AMOUNT</span>
-                  <span className="font-extrabold text-[#4A5CFF] text-xl" id="totalAmountDisplay">${grandTotal.toFixed(2)}</span>
-                </div>
+              ))}
+              <div className="flex justify-between items-center pt-2">
+                <p className="text-xs text-gray-400 font-semibold">Total liabilities</p>
+                <p className="text-brand-dark-violet font-causten font-bold">${totalLiabilities.toFixed(2)}</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Bottom Navigation */}
-        <div className="bottom-nav fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-[520px] bg-white flex justify-around py-2.5 pb-3.5 rounded-t-[24px] rounded-b-[24px] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-[100] md:bottom-5">
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/home')}>
-            <i className="fas fa-home text-lg"></i>
-            <span>Home</span>
-          </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-[#4A5CFF] text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent">
-            <i className="fas fa-credit-card text-lg"></i>
-            <span>Expenses</span>
-          </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/savings')}>
-            <i className="fas fa-piggy-bank text-lg"></i>
-            <span>Savings</span>
-          </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/summary')}>
-            <i className="fas fa-chart-pie text-lg"></i>
-            <span>Summary</span>
-          </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/profile')}>
-            <i className="fas fa-user text-lg"></i>
-            <span>Profile</span>
-          </a>
+        {/* Daily allowance result */}
+        <div
+          className="rounded-2xl px-5 py-5 bg-brand-base"
+          style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
+        >
+          <p className="text-white/60 text-xs font-causten uppercase tracking-widest mb-1">Your daily allowance</p>
+          <p className="text-white text-5xl font-causten font-extrabold">${dailyAllowance.toFixed(2)}</p>
+          <p className="text-white/40 text-xs mt-2">{daysLeft} days remaining · ${available.toFixed(2)} available</p>
         </div>
+
       </div>
+
+      {/* Add liability bottom sheet */}
+      {showForm && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowForm(false)} />
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 px-5 pt-5 pb-10 shadow-2xl">
+            <div className="flex justify-between items-center mb-5">
+              <p className="font-causten font-bold text-brand-dark-violet text-lg">Add Liability</p>
+              <button onClick={() => setShowForm(false)}>
+                <TbX className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Category</p>
+                <select
+                  value={form.category}
+                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                  className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent"
+                >
+                  {LIABILITY_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Name (optional)</p>
+                <input
+                  type="text"
+                  placeholder={`e.g. ${form.category}`}
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-gray-300"
+                />
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Amount per month</p>
+                <div className="flex items-center gap-1 border-b border-gray-100 pb-2">
+                  <span className="text-2xl font-causten font-bold text-brand-dark-violet">$</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={form.amount}
+                    onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+                    className="flex-1 text-2xl font-causten font-bold text-brand-dark-violet border-none outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddLiability}
+              disabled={!form.amount}
+              className="w-full mt-6 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold disabled:opacity-20"
+            >
+              Add
+            </button>
+          </div>
+        </>
+      )}
+
+      <NavBar />
     </div>
-  )
-}
+  );
+};
 
 export default Expense;

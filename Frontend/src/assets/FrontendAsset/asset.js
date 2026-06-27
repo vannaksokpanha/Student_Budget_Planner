@@ -1,13 +1,11 @@
-import { RiHome3Line } from "react-icons/ri";
-import { TbChecklist } from "react-icons/tb";
+import { TbNotes, TbWallet, TbUsersGroup } from "react-icons/tb";
 import { LiaPiggyBankSolid } from "react-icons/lia";
 import { FaChartSimple } from "react-icons/fa6";
-import { CgProfile } from "react-icons/cg";
 
 export const navItems = [
-    { name: 'HOME', path: '/home', Icon: RiHome3Line },
-    { name: 'EXPENSES', path: '/expense', Icon: TbChecklist },
+    { name: 'LOG', path: '/home', Icon: TbNotes },
+    { name: 'BUDGET', path: '/expense', Icon: TbWallet },
     { name: 'SAVINGS', path: '/savings', Icon: LiaPiggyBankSolid },
     { name: 'SUMMARY', path: '/summary', Icon: FaChartSimple },
-    { name: 'PROFILE', path: '/profile', Icon: CgProfile }
+    { name: 'TEAM', path: '/team', Icon: TbUsersGroup },
 ];
