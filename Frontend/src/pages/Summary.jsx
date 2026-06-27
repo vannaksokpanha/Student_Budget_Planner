@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import NavBar from '../components/NavBar'
 
 const Summary = () => {
   const [ready, setReady] = useState(false);
@@ -41,7 +40,6 @@ const Summary = () => {
       <div className="text-center">
         <h1 className="text-3xl text-white font-causten font-bold">SUMMARY</h1>
       </div>
-      <NavBar />
     </div>
   )
 }

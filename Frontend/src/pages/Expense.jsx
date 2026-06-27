@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { TbTrash, TbPlus, TbX } from "react-icons/tb";
-import NavBar from '../components/NavBar';
 
 const LIABILITY_CATEGORIES = ['Rent', 'Groceries', 'Utilities', 'Transport', 'School Fees', 'Other'];
 
@@ -194,8 +193,6 @@ const Expense = () => {
           </div>
         </>
       )}
-
-      <NavBar />
     </div>
   );
 };

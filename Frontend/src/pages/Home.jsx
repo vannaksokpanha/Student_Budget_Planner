@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import { LiaPiggyBankSolid } from "react-icons/lia";
 import { TbX } from "react-icons/tb";
-import NavBar from '../components/NavBar';
 
 const CATEGORIES = ['Food & Drink', 'Transportation', 'Groceries', 'Bills', 'Rental Fee', 'Other'];
 
@@ -291,8 +290,6 @@ const Home = () => {
           </div>
         </>
       )}
-
-      <NavBar />
     </div>
   );
 };
