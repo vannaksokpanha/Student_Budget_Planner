@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import { LiaPiggyBankSolid } from "react-icons/lia";
-import { TbX } from "react-icons/tb";
+import { TbX } from "react-icons/tb"; 
 
 const CATEGORIES = ['Food & Drink', 'Transportation', 'Groceries', 'Bills', 'Rental Fee', 'Other'];
 
