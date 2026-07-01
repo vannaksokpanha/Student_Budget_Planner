@@ -1,8 +1,8 @@
 const sequelize = require("../config/database");
 const { DataTypes } = require("sequelize");
 
-const Membership = sequelize.define("Membership", {
-    membership_id:{
+const BudgetGroupMember = sequelize.define("BudgetGroupMember", {
+    member_id:{
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement:  true
@@ -27,8 +27,10 @@ const Membership = sequelize.define("Membership", {
         defaultValue: DataTypes.NOW
     }
 }, {
-    tableName: "memberships",
-    timestamps: false
+    tableName: "budget_group_members",
+    indexes: [
+        { unique: true, fields: ["user_id", "group_id"] }
+    ]
 });
 
-module.exports = Membership;
+module.exports = BudgetGroupMember;

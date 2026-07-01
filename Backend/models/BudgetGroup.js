@@ -21,8 +21,7 @@ const BudgetGroup = sequelize.define("BudgetGroup", {
         unique: true
     }
 }, {
-    tableName: "budget_groups",
-    timestamps: false
+    tableName: "budget_groups"
 });
 
 module.exports = BudgetGroup;

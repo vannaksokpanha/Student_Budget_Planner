@@ -27,8 +27,7 @@ const SavingGoal = sequelize.define("SavingGoal", {
         type: DataTypes.DATEONLY
     }
 }, {
-    tableName: "saving_goals",
-    timestamps: false
+    tableName: "saving_goals"
 });
 
 module.exports = SavingGoal;

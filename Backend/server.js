@@ -7,8 +7,10 @@ const sequelize = require('./config/database');
 require('./models/associations');
 const authRoutes = require('./Routes/authRoute');
 const homeRoutes = require('./Routes/homeRoute');
-const expenseRoutes = require('./Routes/expenseRoute');
+const dailyLogRoutes = require('./Routes/dailyLogRoute');
+const monthlyBudgetRoutes = require('./Routes/monthlyBudgetRoute');
 const savingsRoutes = require('./Routes/SavingsRoute');
+const categoryRoutes = require('./Routes/categoryRoute');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -18,16 +20,17 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/home', homeRoutes);
-app.use('/api/expenses', expenseRoutes);
+app.use('/api/daily-log', dailyLogRoutes);
+app.use('/api/monthly-budget', monthlyBudgetRoutes);
 app.use('/api/savings', savingsRoutes);
+app.use('/api/categories', categoryRoutes);
 
 app.listen(PORT, async () => {
   try {
     await sequelize.authenticate();
     console.log('Database connected successfully');
 
-    // This creates missing tables from your models.
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
     console.log('Models synchronized with database');
 
     console.log(`Server running on http://localhost:${PORT}`);

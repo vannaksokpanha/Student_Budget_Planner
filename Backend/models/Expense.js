@@ -15,8 +15,9 @@ const Expense = sequelize.define("Expense", {
         type: DataTypes.INTEGER,
         allowNull: true
     },
-    category: {
-        type: DataTypes.STRING(50)
+    category_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
     amount: {
         type: DataTypes.DECIMAL(10, 2),
@@ -29,12 +30,18 @@ const Expense = sequelize.define("Expense", {
     expense_description: {
         type: DataTypes.TEXT
     },
+    expense_date: {
+        type: DataTypes.DATEONLY,
+        defaultValue: DataTypes.NOW
+    },
     expense_type: {
         type: DataTypes.ENUM("Fixed", "Daily Spending", "Group Expense")
     }
 }, {
     tableName: "expenses",
-    timestamps: false
+    indexes: [
+        { fields: ["user_id", "expense_type", "expense_date"] }
+    ]
 });
 
 module.exports = Expense;

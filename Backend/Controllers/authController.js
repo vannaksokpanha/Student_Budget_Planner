@@ -1,6 +1,19 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Category = require('../models/Category');
+
+// Seeded for every new user so the category picker isn't empty on first use
+const DEFAULT_CATEGORIES = [
+  { name: 'Rent', color: '#FF6B6B' },
+  { name: 'Groceries', color: '#FFA94D' },
+  { name: 'Utilities', color: '#FFD43B' },
+  { name: 'Transport', color: '#69DB7C' },
+  { name: 'Food & Drink', color: '#38D9A9' },
+  { name: 'School Fees', color: '#4DABF7' },
+  { name: 'Entertainment', color: '#748FFC' },
+  { name: 'Other', color: '#868E96' }
+];
 
 const signup = async (req, res) => {
   try {
@@ -19,11 +32,15 @@ const signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const user = await User.create({
       name,
       email,
       password: hashedPassword
     });
+
+    await Category.bulkCreate(
+      DEFAULT_CATEGORIES.map(c => ({ ...c, user_id: user.id }))
+    );
 
     return res.status(201).json({ message: 'Success' });
   } catch (err) {

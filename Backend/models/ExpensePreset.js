@@ -1,31 +1,29 @@
 const sequelize = require("../config/database");
 const { DataTypes } = require("sequelize");
 
-const Budget = sequelize.define('Budget', {
-    budget_id: {
+const ExpensePreset = sequelize.define("ExpensePreset", {
+    preset_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
     user_id: {
         type: DataTypes.INTEGER,
-        unique: true,
         allowNull: false
     },
-    monthly_income: {
-        type: DataTypes.DECIMAL(10, 2),
-        defaultValue: 0.00
+    category_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
-    daily_allowance: {
+    amount: {
         type: DataTypes.DECIMAL(10, 2),
-        defaultValue: 0.00
-    },
-    start_date: {
-        type: DataTypes.DATEONLY,
         allowNull: false
     },
+    note: {
+        type: DataTypes.STRING(255)
+    }
 }, {
-    tableName: "budgets"
+    tableName: "expense_presets"
 });
 
-module.exports = Budget;
+module.exports = ExpensePreset;
