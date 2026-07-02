@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import NavBar from '../components/NavBar'
 import GoalCard from "../components/GoalCard";
 import { MdBeachAccess, MdWineBar, MdLaptopMac, MdPhoneAndroid } from 'react-icons/md';
 import { RiFirstAidKitLine } from 'react-icons/ri';
@@ -294,8 +293,6 @@ const Savings = () => {
       >
         +
       </button>
-
-      <NavBar />
 
       {/* Add / Deduct Savings Modal */}
       {updateModal && selectedGoal && (

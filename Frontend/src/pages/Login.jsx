@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link,useNavigate } from 'react-router-dom'
 import { validation } from '../validations/auth/loginValidation.js'
+import { useUser } from '../Context/UserContext.jsx'
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useUser();
 
   const [values, setValues] = useState({
     email: '',
@@ -34,8 +36,8 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok){
-        localStorage.setItem('token', data.token)   // store token in local storage 
-        localStorage.setItem('userName', data.user.name) 
+        // login() updates both localStorage AND the context state, so the NavBar name refreshes
+        login({ name: data.user.name, token: data.token })
         navigate('/home')
       }
       else {
@@ -52,6 +54,7 @@ const Login = () => {
 
   }
 
+  
   const handleInput = (event) => {
     setValues(prev => ({ ...prev, [event.target.name]: event.target.value }))
   }
