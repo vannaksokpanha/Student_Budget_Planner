@@ -4,7 +4,8 @@ import { useState } from "react";
 // By default category/name only appear once an amount has been typed, keeping the
 // common case — just entering a number — as fast as possible. Pass
 // `alwaysShowDetails` for cases where the category matters before the amount does
-// (e.g. a liability needs to be tagged with a category to make sense at all).
+// (e.g. a budget expense needs to be tagged with a category to make sense at all).
+// Pass `bare` to drop the card chrome when the form is embedded inside another card.
 const ExpenseForm = ({
   label,
   namePlaceholder = 'Note (optional)',
@@ -12,7 +13,8 @@ const ExpenseForm = ({
   onRequestNewCategory,
   onSubmit,
   submitLabel = '+ ADD',
-  alwaysShowDetails = false
+  alwaysShowDetails = false,
+  bare = false
 }) => {
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -42,12 +44,14 @@ const ExpenseForm = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg px-5 pt-5 pb-4">
+    <div className={bare ? '' : 'bg-white rounded-2xl shadow-lg px-5 pt-5 pb-4'}>
       <div className="flex items-stretch gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest mb-4">
-            {label}
-          </p>
+          {label && (
+            <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest mb-4">
+              {label}
+            </p>
+          )}
 
           <div className="flex items-center gap-2">
             <span className="text-4xl font-causten font-extrabold text-brand-dark-violet">$</span>

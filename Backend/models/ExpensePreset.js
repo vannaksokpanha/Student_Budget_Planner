@@ -23,7 +23,8 @@ const ExpensePreset = sequelize.define("ExpensePreset", {
         type: DataTypes.STRING(255)
     }
 }, {
-    tableName: "expense_presets"
+    tableName: "expense_presets",
+    timestamps: false
 });
 
 module.exports = ExpensePreset;

@@ -28,6 +28,7 @@ const BudgetGroupMember = sequelize.define("BudgetGroupMember", {
     }
 }, {
     tableName: "budget_group_members",
+    timestamps: false,
     indexes: [
         { unique: true, fields: ["user_id", "group_id"] }
     ]

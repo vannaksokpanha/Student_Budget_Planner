@@ -34,11 +34,24 @@ const Expense = sequelize.define("Expense", {
         type: DataTypes.DATEONLY,
         defaultValue: DataTypes.NOW
     },
+    // 'Monthly Bill'     — budget page, recurring; copied forward by "reuse last month"
+    // 'Expected Expense'  — budget page, one-off; dies with its month
+    // 'Daily Spending'    — daily log entries
+    // 'Group Expense'     — shared group expenses
+    // (renamed from 'Fixed' — if the server won't boot over old 'Fixed' rows,
+    // drop the database and let sync recreate it)
     expense_type: {
-        type: DataTypes.ENUM("Fixed", "Daily Spending", "Group Expense")
+        type: DataTypes.ENUM("Monthly Bill", "Expected Expense", "Daily Spending", "Group Expense")
+    },
+    // Budget-page types only: date the user ticked the item off as paid.
+    // NULL = not paid yet. Status stamp only — never used in allowance math.
+    paid_at: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
     }
 }, {
     tableName: "expenses",
+    timestamps: false,
     indexes: [
         { fields: ["user_id", "expense_type", "expense_date"] }
     ]
