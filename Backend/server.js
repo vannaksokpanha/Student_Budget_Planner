@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, 'config', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const sequelize = require('./config/database');
 require('./models/associations');
@@ -11,6 +11,7 @@ const dailyLogRoutes = require('./Routes/dailyLogRoute');
 const monthlyBudgetRoutes = require('./Routes/monthlyBudgetRoute');
 const savingsRoutes = require('./Routes/SavingsRoute');
 const categoryRoutes = require('./Routes/categoryRoute');
+const userRoutes = require('./Routes/userRoute');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -24,6 +25,7 @@ app.use('/api/daily-log', dailyLogRoutes);
 app.use('/api/monthly-budget', monthlyBudgetRoutes);
 app.use('/api/savings', savingsRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/user', userRoutes);
 
 app.listen(PORT, async () => {
   try {

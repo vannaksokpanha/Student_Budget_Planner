@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { TbPencil } from "react-icons/tb";
-import NavBar from '../components/NavBar';
 import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
 import ExpenseListItem from '../components/ExpenseListItem';
@@ -404,7 +403,6 @@ const MonthlyBudget = () => {
         />
       )}
 
-      <NavBar />
     </div>
   );
 };

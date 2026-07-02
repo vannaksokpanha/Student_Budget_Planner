@@ -10,10 +10,9 @@ const NavBar = ({isOpen,setIsOpen}) => {
     const {user, logout} = useUser();
 
     const handleLogout = () => {
-        logout();
+        logout();   
         navigate('/login');
     };
-
     return (
         <>
             {/* Desktop */}

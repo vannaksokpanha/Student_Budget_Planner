@@ -7,7 +7,9 @@ import SetUp from './pages/SetUp.jsx'
 import MonthlyBudget from './pages/MonthlyBudget.jsx'
 import Savings from './pages/Savings.jsx'
 import Summary from './pages/Summary.jsx'
-
+import Profile from './pages/Profile.jsx'
+import TeamBudget from './pages/TeamBudget.jsx'
+import Layout from './components/Layout.jsx'
 
 const App = () => {
   return (
@@ -16,12 +18,15 @@ const App = () => {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/home" element={<DailyLog />} />
-        <Route path="/setup" element={<SetUp />} />
-        <Route path="/expense" element={<MonthlyBudget />} />
-        <Route path="/savings" element={<Savings />} />
-        <Route path="/summary" element={<Summary />} />
-        
+        <Route element={<Layout />}>
+          <Route path="/home" element={<DailyLog />} />
+          <Route path="/setup" element={<SetUp />} />
+          <Route path="/expense" element={<MonthlyBudget />} />
+          <Route path="/savings" element={<Savings />} />
+          <Route path="/summary" element={<Summary />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/team" element={<TeamBudget />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
