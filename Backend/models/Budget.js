@@ -25,7 +25,8 @@ const Budget = sequelize.define('Budget', {
         allowNull: false
     },
 }, {
-    tableName: "budgets"
+    tableName: "budgets",
+    timestamps: false
 });
 
 module.exports = Budget;

@@ -21,7 +21,8 @@ const Category = sequelize.define("Category", {
         defaultValue: '#6B7280'
     }
 }, {
-    tableName: "categories"
+    tableName: "categories",
+    timestamps: false
 });
 
 module.exports = Category;

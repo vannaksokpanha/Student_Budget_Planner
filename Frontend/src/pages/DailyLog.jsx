@@ -117,6 +117,7 @@ const DailyLog = () => {
       headers: authHeader(),
       body: JSON.stringify({
         amount: preset.amount,
+        category_id: preset.categoryId || null,
         expense_description: preset.note || '',
         expense_date: todayString()
       })
@@ -285,26 +286,33 @@ const DailyLog = () => {
         {presets.length === 0 ? (
           <p className="text-gray-300 text-xs">No presets yet — add one to log common expenses in one tap.</p>
         ) : (
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="space-y-2">
             {presets.map(preset => (
               <div
                 key={preset.id}
-                className="group relative shrink-0 bg-white rounded-xl shadow-sm hover:bg-brand-dark-violet hover:shadow-md transition-all"
+                className="group relative bg-white rounded-xl shadow-sm hover:bg-brand-dark-violet hover:shadow-md transition-all"
               >
                 <button
                   onClick={() => handleUsePreset(preset)}
-                  className="px-4 py-2.5 pr-7 text-left active:scale-95 transition-transform"
+                  className="w-full flex justify-between items-center px-4 py-2.5 pr-10 text-left active:scale-[0.99] transition-transform"
                 >
-                  <p className="text-brand-dark-violet group-hover:text-white font-semibold text-sm transition-colors">
-                    {preset.categoryName || 'Uncategorized'}
-                  </p>
-                  <p className="text-brand-dark-violet group-hover:text-white font-causten font-bold text-sm transition-colors">
+                  <div className="min-w-0">
+                    <p className="text-brand-dark-violet group-hover:text-white font-semibold text-sm transition-colors truncate">
+                      {preset.categoryName || 'Uncategorized'}
+                    </p>
+                    {preset.note && (
+                      <p className="text-gray-300 group-hover:text-white/70 text-xs transition-colors truncate">
+                        {preset.note}
+                      </p>
+                    )}
+                  </div>
+                  <p className="text-brand-dark-violet group-hover:text-white font-causten font-bold text-sm transition-colors shrink-0">
                     ${preset.amount.toFixed(2)}
                   </p>
                 </button>
                 <button
                   onClick={() => handleDeletePreset(preset.id)}
-                  className="absolute top-1.5 right-1.5 text-gray-300 group-hover:text-white/70 hover:text-red-400 transition-colors"
+                  className="absolute top-1/2 -translate-y-1/2 right-3 text-gray-300 group-hover:text-white/70 hover:text-red-400 transition-colors"
                 >
                   <TbX className="w-3.5 h-3.5" />
                 </button>
