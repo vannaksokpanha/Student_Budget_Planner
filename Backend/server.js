@@ -11,6 +11,7 @@ const dailyLogRoutes = require('./Routes/dailyLogRoute');
 const monthlyBudgetRoutes = require('./Routes/monthlyBudgetRoute');
 const savingsRoutes = require('./Routes/SavingsRoute');
 const categoryRoutes = require('./Routes/categoryRoute');
+const summaryRoutes = require('./Routes/summaryRoute');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -24,6 +25,7 @@ app.use('/api/daily-log', dailyLogRoutes);
 app.use('/api/monthly-budget', monthlyBudgetRoutes);
 app.use('/api/savings', savingsRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/summary', summaryRoutes);
 
 app.listen(PORT, async () => {
   try {
