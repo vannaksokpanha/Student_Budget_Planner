@@ -5,7 +5,6 @@ import { TbX, TbPlus } from "react-icons/tb";
 import NavBar from '../components/NavBar';
 import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
-import ExpenseListItem from '../components/ExpenseListItem';
 import EditExpenseSheet from '../components/EditExpenseSheet';
 import PresetItem from '../components/PresetItem';
 
@@ -54,6 +53,7 @@ const DailyLog = () => {
   const [expenses, setExpenses] = useState([]);
   const [editing, setEditing] = useState(null);
   const [dailyBudget, setDailyBudget] = useState(0);
+  const [baseAllowance, setBaseAllowance] = useState(0);
   const [presets, setPresets] = useState([]);
   const [showPresetForm, setShowPresetForm] = useState(false);
   const [presetForm, setPresetForm] = useState({ category_id: '', amount: '', note: '' });
@@ -82,6 +82,7 @@ const DailyLog = () => {
     ]).then(([logs, budget, presetList, cats]) => {
       setExpenses(Array.isArray(logs) ? logs.map(mapLog) : []);
       setDailyBudget(parseFloat(budget?.daily_allowance) || 0);
+      setBaseAllowance(parseFloat(budget?.base_allowance) || 0);
       setPresets(Array.isArray(presetList) ? presetList.map(mapPreset) : []);
       setCategories(Array.isArray(cats) ? cats.map(mapCategory) : []);
     });
@@ -95,8 +96,21 @@ const DailyLog = () => {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
 
-  // Logs a new expense; matches ExpenseForm's onSubmit({ amount, category_id, name }) contract
-  const handleAdd = async ({ amount, category_id, name }) => {
+  // Re-pulls the backend's allowance numbers — a backdated entry changes
+  // "spent before today", which feeds today's carryover
+  const refreshBudgetNumbers = async () => {
+    try {
+      const res = await fetch(`${API}/monthly-budget`, { headers: authHeader() });
+      if (!res.ok) return;
+      const budget = await res.json();
+      setDailyBudget(parseFloat(budget?.daily_allowance) || 0);
+      setBaseAllowance(parseFloat(budget?.base_allowance) || 0);
+    } catch { /* keep the numbers we have */ }
+  };
+
+  // Logs a new expense; matches ExpenseForm's onSubmit({ amount, category_id, name, date }) contract
+  const handleAdd = async ({ amount, category_id, name, date }) => {
+    const logDate = date || todayString();
     const res = await fetch(`${API}/daily-log`, {
       method: 'POST',
       headers: authHeader(),
@@ -104,12 +118,20 @@ const DailyLog = () => {
         amount,
         category_id: category_id || null,
         expense_description: name || '',
-        expense_date: todayString()
+        expense_date: logDate
       })
     });
     if (!res.ok) return false;
     const created = await res.json();
-    setExpenses(prev => [mapLog(created), ...prev]);
+
+    if (logDate === todayString()) {
+      // Today's entry joins the list and today's totals
+      setExpenses(prev => [mapLog(created), ...prev]);
+    } else {
+      // Backdated — it lives on a past day, so it won't appear in today's
+      // list, but it shrinks today's allowance via the carryover
+      refreshBudgetNumbers();
+    }
   };
 
   // Tapping a preset loads it into the quick-add form for review instead of
@@ -210,22 +232,38 @@ const DailyLog = () => {
   const remainPct = dailyBudget > 0 ? Math.max(0, Math.min(remaining / dailyBudget, 1)) : 0;
 
   return (
-    <div className="min-h-screen bg-brand-white pb-24">
+    <div
+      className="min-h-screen bg-brand-base pb-24 md:pb-10 md:pl-56"
+      style={{
+        // Overspent turns the whole page's wash orange, fading down its full
+        // height so there's no hard cutoff line anywhere
+        backgroundImage: remaining < 0
+          ? 'linear-gradient(to bottom, rgba(249, 115, 22, 0.55), rgba(249, 115, 22, 0.05))'
+          : 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.15))'
+      }}
+    >
+      {/* On desktop the content sits in a centered phone-width column beside
+          the sidebar; on mobile it spans the screen as before */}
+      <div className="md:max-w-2xl md:mx-auto md:pt-8">
 
-      {/* Header */}
-      <div
-        className="relative px-5 pt-12 pb-10 min-h-45 bg-brand-base transition-all duration-700"
-        style={{
-          backgroundImage: remaining < 0
-            ? 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(249, 115, 22, 0.7))'
-            : 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))'
-        }}
-      >
+      {/* Header — transparent over the page's purple; the overspend warning
+          lives on the hero box below, not up here */}
+      <div className="relative px-5 pt-12 pb-10 min-h-45 md:rounded-3xl md:pt-10">
         {/* Top right: daily allowance vertically centered beside the profile */}
         <div className="absolute top-12 right-5 flex items-center gap-3">
-          <div className="h-12 flex flex-col justify-center text-right">
-            <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Daily Allowance</p>
+          <div className="flex flex-col justify-center text-right">
+            <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Allowance</p>
             <p className="text-white text-xl font-causten font-extrabold leading-none">${dailyBudget.toFixed(2)}</p>
+            {/* Where the number comes from: base rate ± banked carryover */}
+            {baseAllowance > 0 && (
+              <p className="text-white/50 text-[10px] font-causten leading-none mt-1">
+                {dailyBudget - baseAllowance > 0.005
+                  ? `$${baseAllowance.toFixed(2)}/day + $${(dailyBudget - baseAllowance).toFixed(2)} saved up`
+                  : dailyBudget - baseAllowance < -0.005
+                    ? `$${baseAllowance.toFixed(2)}/day − $${(baseAllowance - dailyBudget).toFixed(2)} behind`
+                    : `$${baseAllowance.toFixed(2)}/day · right on pace`}
+              </p>
+            )}
           </div>
           <button
             onClick={() => navigate('/profile')}
@@ -238,14 +276,29 @@ const DailyLog = () => {
         </div>
 
         <div className="mb-6 pr-40">
-          <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
-          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Daily Log</h1>
+          <h1 className="text-white font-causten font-extrabold tracking-tight leading-none">
+            <span className="block text-2xl text-white/80">Today's</span>
+            <span className="block text-5xl mt-1">Record</span>
+          </h1>
+          <p className="text-white/50 text-sm font-causten mt-1">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
         </div>
 
-        {/* Remaining Today — hero box with the allowance bar along its bottom edge */}
+        {/* Remaining Today — hero box with the allowance bar along its bottom edge.
+            When overspent, the big number stays at $0.00 (what's actually
+            spendable) and the deficit is spelled out underneath instead of
+            showing a raw negative. */}
         <div className="relative bg-white/15 rounded-2xl px-4 pt-9 pb-11 text-center">
           <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">Remaining Today</p>
-          <p className="text-white text-6xl font-causten font-extrabold tracking-tight">${remaining.toFixed(2)}</p>
+          <p className="text-white text-6xl font-causten font-extrabold tracking-tight">
+            ${Math.max(0, remaining).toFixed(2)}
+          </p>
+          {remaining < 0 && (
+            <p className="text-orange-200 text-sm font-causten font-semibold mt-2">
+              You're ${Math.abs(remaining).toFixed(2)} behind — tomorrow's allowance will absorb it
+            </p>
+          )}
           {/* starts the day full and drains as money goes out */}
           <div className="absolute left-4 right-4 bottom-4 h-1.5 rounded-full bg-white/20 overflow-hidden">
             <div
@@ -268,25 +321,26 @@ const DailyLog = () => {
           onRequestNewCategory={() => setShowCategoryForm(true)}
           onSubmit={handleAdd}
           prefill={formPrefill}
+          showDate
         />
       </div>
 
       {/* Quick Access */}
       <div className="mx-5 mt-7">
         <div className="flex justify-between items-center mb-2">
-          <p className="font-causten font-bold text-brand-dark-violet text-xl">
+          <p className="font-causten font-bold text-white text-xl">
             Quick Access
           </p>
           <button
             onClick={() => setShowPresetForm(true)}
-            className="flex items-center gap-1 text-brand-dark-violet text-sm font-causten font-bold"
+            className="flex items-center gap-1 text-white/80 text-sm font-causten font-bold hover:text-white transition-colors"
           >
             <TbPlus className="w-4 h-4" /> ADD PRESET
           </button>
         </div>
 
         {presets.length === 0 ? (
-          <p className="text-gray-300 text-sm">No presets yet — add one to log common expenses in one tap.</p>
+          <p className="text-white/60 text-sm">No presets yet — add one to log common expenses in one tap.</p>
         ) : (
           <div className="grid grid-cols-4 gap-2">
             {presets.map(preset => (
@@ -377,9 +431,9 @@ const DailyLog = () => {
       {/* Today's Spending */}
       <div className="mx-5 mt-6">
         <div className="flex justify-between items-center mb-3">
-          <p className="font-causten font-bold text-brand-dark-violet text-xl">Today's Spending</p>
+          <p className="font-causten font-bold text-white text-xl">Today's Spending</p>
           {expenses.length > 0 && (
-            <p className="text-sm text-gray-400">${todaySpent.toFixed(2)} spent</p>
+            <p className="text-sm text-white/70">${todaySpent.toFixed(2)} spent</p>
           )}
         </div>
 
@@ -389,22 +443,30 @@ const DailyLog = () => {
               <LiaPiggyBankSolid className="w-16 h-16 text-brand-dark-violet" />
             </div>
             <div className="text-center">
-              <p className="text-brand-dark-violet font-causten font-bold text-lg">Nothing logged yet</p>
-              <p className="text-gray-300 text-sm mt-1">Type an amount above and tap + ADD</p>
+              <p className="text-white font-causten font-bold text-lg">Nothing logged yet</p>
+              <p className="text-white/60 text-sm mt-1">Type an amount above and tap + ADD</p>
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg px-5 py-5 space-y-2">
+          <div className="space-y-2">
+            {/* Each entry is its own compact one-line card; tap to edit */}
             {expenses.map(e => (
-              <ExpenseListItem
+              <button
                 key={e.id}
-                primaryText={e.note || e.categoryName || 'Uncategorized'}
-                categoryName={e.categoryName || 'Uncategorized'}
-                categoryColor={e.categoryColor}
-                date={e.date}
-                amount={e.amount}
                 onClick={() => setEditing(e)}
-              />
+                className="w-full bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-2.5 text-left transition-colors hover:bg-brand-light-violet"
+              >
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: e.categoryColor }} />
+                <p className="text-brand-dark-violet text-sm font-semibold truncate">
+                  {e.note || e.categoryName || 'Uncategorized'}
+                </p>
+                {e.note && (
+                  <p className="text-gray-300 text-xs shrink-0">{e.categoryName || 'Uncategorized'}</p>
+                )}
+                <p className="ml-auto text-brand-dark-violet font-causten font-bold text-sm shrink-0">
+                  ${e.amount.toFixed(2)}
+                </p>
+              </button>
             ))}
           </div>
         )}
@@ -431,6 +493,8 @@ const DailyLog = () => {
           onClose={() => setShowCategoryForm(false)}
         />
       )}
+
+      </div>
 
       <NavBar />
     </div>

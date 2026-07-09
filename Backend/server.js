@@ -32,7 +32,11 @@ app.listen(PORT, async () => {
     await sequelize.authenticate();
     console.log('Database connected successfully');
 
-    await sequelize.sync({ alter: true });
+    // No { alter: true } here — alter re-adds the unique index on users.email
+    // on every boot until MySQL's 64-index cap crashes the app. Plain sync()
+    // only creates missing tables. If a model's columns change, update the
+    // table manually (or run sync({ alter: true }) once, then revert).
+    await sequelize.sync();
     console.log('Models synchronized with database');
 
     console.log(`Server running on http://localhost:${PORT}`);

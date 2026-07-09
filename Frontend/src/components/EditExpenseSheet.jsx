@@ -118,13 +118,13 @@ const EditExpenseSheet = ({
         <div className="flex gap-3 mt-6">
           <button
             onClick={() => setConfirmingDelete(true)}
-            className="flex-1 py-3 rounded-xl border border-red-200 text-red-400 font-causten font-bold text-sm"
+            className="flex-1 py-3 rounded-xl bg-red-400 text-white font-causten font-bold text-sm transition-colors hover:bg-red-500"
           >
             Delete
           </button>
           <button
             onClick={handleSave}
-            className="flex-2 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold text-sm"
+            className="flex-2 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold text-sm transition-colors hover:bg-brand-base"
           >
             Save
           </button>

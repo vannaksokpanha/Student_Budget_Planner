@@ -116,6 +116,10 @@ const Savings = () => {
     if (!updateAmount || isNaN(updateAmount) || Number(updateAmount) <= 0)
       return setUpdateError('Please enter a valid amount.');
 
+    // Catch over-withdrawing before it ever reaches the server
+    if (updateAction === 'deduct' && Number(updateAmount) > Number(selectedGoal.current_amount))
+      return setUpdateError(`You only have $${Number(selectedGoal.current_amount).toFixed(2)} saved in this goal.`);
+
     setUpdating(true);
     const token = localStorage.getItem('token');
     const amount = updateAction === 'deduct' ? -Number(updateAmount) : Number(updateAmount);
@@ -430,6 +434,11 @@ const Savings = () => {
                   className="border-2 border-gray-200 rounded-xl px-4 py-3 text-brand-dark-violet
                              font-causten focus:outline-none focus:border-brand-dark-violet transition-colors"
                 />
+                <p className="text-xs text-gray-400 font-causten mt-1">
+                  {updateAction === 'add'
+                    ? "Comes out of this month's budget — your allowance will adjust."
+                    : "Goes back into this month's budget."}
+                </p>
               </div>
 
               {updateError && <p className="text-red-500 text-sm font-causten">{updateError}</p>}

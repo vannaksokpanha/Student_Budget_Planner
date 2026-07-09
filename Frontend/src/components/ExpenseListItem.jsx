@@ -10,7 +10,7 @@ import { TbCheck } from "react-icons/tb";
 // its own button so ticking doesn't open the edit sheet.
 const ExpenseListItem = ({ primaryText, categoryName, categoryColor, secondaryText, date, amount, paid = false, onTogglePaid, onClick }) => {
   return (
-    <div className="w-[calc(100%+2.5rem)] flex items-center gap-3 py-2.5 px-5 -mx-5 rounded-lg border-b border-gray-50 last:border-0 transition-colors hover:bg-gray-50">
+    <div className="w-[calc(100%+2.5rem)] flex items-center gap-3 py-2.5 px-5 -mx-5 rounded-lg border-b border-gray-50 last:border-0 transition-colors hover:bg-brand-light-violet">
       <button
         onClick={onClick}
         className={`flex-1 min-w-0 flex justify-between items-center gap-3 text-left ${paid ? 'opacity-40' : ''}`}

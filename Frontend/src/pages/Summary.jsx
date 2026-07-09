@@ -75,6 +75,14 @@ const Summary = () => {
 
   const dayTotal = dayExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
+  // The day report's two groups: budget items ticked off as paid that day vs
+  // spending logged on the Daily Log page
+  const BUDGET_TYPES = ['Monthly Bill', 'Expected Expense'];
+  const dayBills = dayExpenses.filter(e => BUDGET_TYPES.includes(e.expense_type));
+  const dayPocket = dayExpenses.filter(e => !BUDGET_TYPES.includes(e.expense_type));
+  const dayBillsTotal = dayBills.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+  const dayPocketTotal = dayPocket.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+
   // Per-category totals for the picked month, largest first
   const monthTotal = monthExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
   const byCategory = Object.values(
@@ -142,16 +150,53 @@ const Summary = () => {
             <p className="text-gray-300 text-sm text-center py-4">Nothing logged on this day.</p>
           ) : (
             <div>
-              {dayExpenses.map(e => (
-                <ExpenseListItem
-                  key={e.expense_id}
-                  primaryText={e.expense_description || e.Category?.name || 'Uncategorized'}
-                  categoryName={e.Category?.name || 'Uncategorized'}
-                  categoryColor={e.Category?.color || '#D1D5DB'}
-                  secondaryText={e.expense_type}
-                  amount={parseFloat(e.amount)}
-                />
-              ))}
+              {/* Bills & Planned — budget items ticked off as paid on this day.
+                  Full-bleed tinted band so the two groups read as distinct blocks */}
+              {dayBills.length > 0 && (
+                <div>
+                  <div className="-mx-5 px-5 py-2 bg-brand-light-violet flex justify-between items-center">
+                    <p className="text-[10px] font-causten font-bold text-brand-dark-violet uppercase tracking-widest">
+                      Bills & Planned
+                    </p>
+                    <p className="text-xs font-causten font-bold text-brand-dark-violet">
+                      ${dayBillsTotal.toFixed(2)}
+                    </p>
+                  </div>
+                  {dayBills.map(e => (
+                    <ExpenseListItem
+                      key={e.expense_id}
+                      primaryText={e.expense_description || e.Category?.name || 'Uncategorized'}
+                      categoryName={e.Category?.name || 'Uncategorized'}
+                      categoryColor={e.Category?.color || '#D1D5DB'}
+                      amount={parseFloat(e.amount)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Pocket Spending — everyday expenses logged on the Daily Log page */}
+              {dayPocket.length > 0 && (
+                <div className={dayBills.length > 0 ? 'mt-4' : ''}>
+                  <div className="-mx-5 px-5 py-2 bg-brand-light-pink flex justify-between items-center">
+                    <p className="text-[10px] font-causten font-bold text-brand-dark-violet uppercase tracking-widest">
+                      Pocket Spending
+                    </p>
+                    <p className="text-xs font-causten font-bold text-brand-dark-violet">
+                      ${dayPocketTotal.toFixed(2)}
+                    </p>
+                  </div>
+                  {dayPocket.map(e => (
+                    <ExpenseListItem
+                      key={e.expense_id}
+                      primaryText={e.expense_description || e.Category?.name || 'Uncategorized'}
+                      categoryName={e.Category?.name || 'Uncategorized'}
+                      categoryColor={e.Category?.color || '#D1D5DB'}
+                      amount={parseFloat(e.amount)}
+                    />
+                  ))}
+                </div>
+              )}
+
               <div className="flex justify-between items-center pt-3">
                 <p className="text-xs text-gray-400 font-semibold">
                   Total · {dayExpenses.length} {dayExpenses.length === 1 ? 'expense' : 'expenses'}

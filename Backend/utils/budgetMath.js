@@ -13,9 +13,14 @@ const Expense = require('../models/Expense');
 const TYPES = {
   BILL: 'Monthly Bill',
   PLANNED: 'Expected Expense',
-  DAILY: 'Daily Spending'
+  DAILY: 'Daily Spending',
+  SAVINGS: 'Savings'
 };
 const BUDGET_TYPES = [TYPES.BILL, TYPES.PLANNED];
+// Everything that reserves money from monthly income before the allowance is
+// spread: budget-page items plus this month's savings deposits ("pay yourself
+// first" — a savings deposit is a bill to yourself)
+const RESERVED_TYPES = [...BUDGET_TYPES, TYPES.SAVINGS];
 
 // ── Date helpers ──────────────────────────────────────────────────────────
 // All date strings are local YYYY-MM-DD. Deliberately avoids toISOString(),
@@ -51,49 +56,84 @@ const expenseKey = (e) =>
   `${e.category_id ?? 'none'}::${(e.expense_description || '').trim().toLowerCase()}`;
 
 // ── The core formula ──────────────────────────────────────────────────────
-// Given a user's monthly income:
-//   available       = monthly_income − this month's planned (bills + expected)
-//   daily_allowance = available ÷ days remaining (incl. today)
+// Allowance model: fixed base + carryover ("banking").
 //
-// This is the ONE place allowance semantics live — when the model changes
-// (e.g. carrying over daily over/underspending), it changes here and every
-// endpoint follows.
-const computeBudgetNumbers = async (userId, monthlyIncome) => {
-  const [start, end] = monthRange();
-  const planned = await Expense.findAll({
+//   base            = (income − planned) ÷ days from the anchor to month end
+//   daily_allowance = base × days credited so far − daily spending before today
+//                     (what the user may spend TODAY, carryover included)
+//   available       = income − planned − all daily spending this month
+//
+// The base only moves when income or bills change — never because the user
+// spent money. Underspending yesterday banks into today; overspending digs
+// into today. Spending exactly base every day keeps the allowance rock-steady.
+// Today's own spending is deliberately excluded here: the Daily Log page
+// subtracts it live on top of the returned allowance.
+//
+// `anchorDate` is when the user's budget began (Budget.start_date) — someone
+// who sets up mid-month is only credited days from that point onward.
+const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) => {
+  const now = new Date();
+  const [start, end] = monthRange(now);
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const today = toDateString(now);
+
+  const expenses = await Expense.findAll({
     where: {
       user_id: userId,
-      expense_type: { [Op.in]: BUDGET_TYPES },
+      expense_type: { [Op.in]: [...RESERVED_TYPES, TYPES.DAILY] },
       expense_date: { [Op.between]: [start, end] }
     }
   });
-  const totalPlanned = planned.reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
-  const available = Math.max(0, parseFloat(monthlyIncome || 0) - totalPlanned);
-  const days_remaining = daysRemainingInMonth();
+  // Sequelize may return DATEONLY as a string or a Date depending on dialect
+  const dateOf = (e) =>
+    typeof e.expense_date === 'string' ? e.expense_date : toDateString(new Date(e.expense_date));
+  const sumWhere = (test) =>
+    expenses.filter(test).reduce((sum, e) => sum + parseFloat(e.amount), 0);
+
+  const totalPlanned = sumWhere(e => RESERVED_TYPES.includes(e.expense_type));
+  const spentThisMonth = sumWhere(e => e.expense_type === TYPES.DAILY);
+  const spentBeforeToday = sumWhere(e => e.expense_type === TYPES.DAILY && dateOf(e) < today);
+
+  const income = parseFloat(monthlyIncome || 0);
+
+  // Day-of-month the budget starts counting from: the anchor's day when it
+  // falls in the current month, otherwise the 1st
+  const anchor = anchorDate ? new Date(anchorDate) : null;
+  const anchorDay =
+    anchor && anchor.getFullYear() === now.getFullYear() && anchor.getMonth() === now.getMonth()
+      ? anchor.getDate()
+      : 1;
+
+  const budgetDays = daysInMonth - anchorDay + 1;                   // days the base spreads across
+  const daysCredited = Math.max(0, now.getDate() - anchorDay + 1);  // allowance days granted so far (incl. today)
+
+  const base = budgetDays > 0 ? Math.max(0, income - totalPlanned) / budgetDays : 0;
 
   return {
-    daily_allowance: days_remaining > 0 ? available / days_remaining : 0,
-    available,
-    days_remaining
+    daily_allowance: base * daysCredited - spentBeforeToday,
+    base_allowance: base,
+    available: Math.max(0, income - totalPlanned - spentThisMonth),
+    days_remaining: daysRemainingInMonth()
   };
 };
 
 // Recomputes the user's numbers from their Budget row and persists the fresh
-// daily_allowance. Safe when no budget exists yet — returns zeros.
+// base allowance. Safe when no budget exists yet — returns zeros.
 const refreshBudget = async (userId) => {
   const budget = await Budget.findOne({ where: { user_id: userId } });
   if (!budget) {
-    return { budget: null, daily_allowance: 0, available: 0, days_remaining: daysRemainingInMonth() };
+    return { budget: null, daily_allowance: 0, base_allowance: 0, available: 0, days_remaining: daysRemainingInMonth() };
   }
-  const numbers = await computeBudgetNumbers(userId, budget.monthly_income);
-  await budget.update({ daily_allowance: numbers.daily_allowance });
+  const numbers = await computeBudgetNumbers(userId, budget.monthly_income, budget.start_date);
+  await budget.update({ daily_allowance: numbers.base_allowance });
   return { budget, ...numbers };
 };
 
 module.exports = {
   TYPES,
   BUDGET_TYPES,
+  RESERVED_TYPES,
   toDateString,
   todayString,
   monthRange,

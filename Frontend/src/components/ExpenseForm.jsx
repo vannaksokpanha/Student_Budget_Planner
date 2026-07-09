@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { TbChevronDown, TbX } from "react-icons/tb";
+import { TbX } from "react-icons/tb";
+import CategoryChips from "./CategoryChips";
+
+// Local YYYY-MM-DD — avoids toISOString(), which can shift the calendar day
+// in timezones ahead of UTC
+const todayStr = () => {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
 
 // Amount-first quick-add card, shared by any page that needs to log an expense.
 // By default category/name only appear once an amount has been typed, keeping the
@@ -12,6 +21,8 @@ import { TbChevronDown, TbX } from "react-icons/tb";
 // preset can be applied twice in a row.
 // Pass `dark` when the form sits on a brand-dark-violet surface — text goes
 // white and the fields become frosted (white at low opacity).
+// Pass `showDate` to add a date picker (defaults to today, capped at today —
+// spending can be backdated but never logged into the future).
 const ExpenseForm = ({
   label,
   namePlaceholder = 'Note (optional)',
@@ -22,11 +33,13 @@ const ExpenseForm = ({
   alwaysShowDetails = false,
   bare = false,
   prefill = null,
-  dark = false
+  dark = false,
+  showDate = false
 }) => {
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [name, setName] = useState('');
+  const [date, setDate] = useState(todayStr());
 
   useEffect(() => {
     if (!prefill) return;
@@ -35,27 +48,22 @@ const ExpenseForm = ({
     setName(prefill.name || '');
   }, [prefill]);
 
-  const handleCategoryChange = (e) => {
-    if (e.target.value === '__add_new__') {
-      onRequestNewCategory?.();
-      return;
-    }
-    setCategoryId(e.target.value);
-  };
-
   const handleAdd = async () => {
     if (!amount || isNaN(parseFloat(amount))) return;
 
     const ok = await onSubmit({
       amount: parseFloat(amount),
       category_id: categoryId || null,
-      name
+      name,
+      // Clamp to today even if the browser let a future date through
+      ...(showDate ? { date: date && date <= todayStr() ? date : todayStr() } : {})
     });
     if (ok === false) return;
 
     setAmount('');
     setCategoryId('');
     setName('');
+    setDate(todayStr());
   };
 
   return (
@@ -97,22 +105,13 @@ const ExpenseForm = ({
 
       {(alwaysShowDetails || amount) ? (
         <div className={`mt-3 border-t pt-3 space-y-2 ${dark ? 'border-white/10' : 'border-brand-dark-violet/10'}`}>
-          <div className="relative">
-            <select
-              value={categoryId}
-              onChange={handleCategoryChange}
-              className={`w-full appearance-none rounded-xl pl-3 pr-9 py-2.5 text-sm outline-none focus:ring-2 transition-shadow ${
-                dark
-                  ? 'bg-white/30 text-white focus:ring-white/40'
-                  : 'bg-brand-dark-violet/5 text-brand-dark-violet focus:ring-brand-dark-violet/15'
-              }`}
-            >
-              <option value="">Category (optional)</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              <option value="__add_new__">+ Add new category</option>
-            </select>
-            <TbChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${dark ? 'text-white/40' : 'text-brand-dark-violet/40'}`} />
-          </div>
+          <CategoryChips
+            categories={categories}
+            value={categoryId}
+            onChange={setCategoryId}
+            onRequestNew={onRequestNewCategory}
+            dark={dark}
+          />
           <div className="relative">
             <input
               type="text"
@@ -137,6 +136,20 @@ const ExpenseForm = ({
               </button>
             )}
           </div>
+          {showDate && (
+            <input
+              type="date"
+              value={date}
+              max={todayStr()}
+              onChange={e => setDate(e.target.value)}
+              aria-label="Date of expense"
+              className={`w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 transition-shadow ${
+                dark
+                  ? 'bg-white/30 text-white focus:ring-white/40'
+                  : 'bg-brand-dark-violet/5 text-brand-dark-violet focus:ring-brand-dark-violet/15'
+              }`}
+            />
+          )}
         </div>
       ) : null}
     </div>

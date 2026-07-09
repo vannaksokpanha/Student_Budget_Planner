@@ -7,27 +7,26 @@ const NavBar = () => {
 
     return (
         <>
-            {/* Desktop */}
-            <div className="hidden md:block bg-white shadow-md sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-6">
-                    <div className="flex justify-around py-4">
-                        {navItems.map((item) => (
-                            <button
-                                key={item.name}
-                                onClick={() => navigate(item.path)}
-                                className={`group flex items-center justify-center gap-2 border-b-2 px-5 py-2 font-semibold transition duration-200 ${
-                                    location.pathname === item.path
-                                        ? 'text-brand-dark-violet border-brand-dark-violet'
-                                        : 'border-transparent text-gray-500 hover:text-brand-dark-violet'
-                                }`}
-                            >
-                                {item.Icon && (
-                                    <item.Icon className="w-5 h-5 fill-current transition duration-200 group-hover:scale-110 group-hover:text-black" />
-                                )}
-                                <span>{item.name}</span>
-                            </button>
-                        ))}
-                    </div>
+            {/* Desktop — fixed sidebar down the left edge */}
+            <div className="hidden md:flex fixed left-0 top-0 bottom-0 w-56 flex-col bg-white shadow-md z-50 px-4 py-8">
+                <p className="font-causten font-extrabold text-brand-dark-violet text-xl px-4 mb-8">
+                    Budget Planner
+                </p>
+                <div className="flex flex-col gap-1">
+                    {navItems.map((item) => (
+                        <button
+                            key={item.name}
+                            onClick={() => navigate(item.path)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-causten font-bold text-sm transition-colors ${
+                                location.pathname === item.path
+                                    ? 'bg-brand-dark-violet text-white'
+                                    : 'text-gray-500 hover:text-brand-dark-violet hover:bg-brand-light-violet/60'
+                            }`}
+                        >
+                            {item.Icon && <item.Icon className="w-5 h-5 fill-current" />}
+                            <span>{item.name}</span>
+                        </button>
+                    ))}
                 </div>
             </div>
 

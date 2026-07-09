@@ -24,14 +24,14 @@ const PresetItem = ({ preset, onUse, onDelete }) => {
           ${preset.amount.toFixed(2)}
         </p>
         <div className="min-w-0 max-w-full">
-          <p className="text-brand-dark-violet text-xs truncate">
-            {preset.categoryName || 'Uncategorized'}
-          </p>
           {preset.note && (
-            <p className="text-brand-dark-violet/50 text-[10px] truncate">
+            <p className="text-brand-dark-violet text-sm font-causten font-bold truncate">
               {preset.note}
             </p>
           )}
+          <p className="text-brand-dark-violet/50 text-[10px] truncate">
+            {preset.categoryName || 'Uncategorized'}
+          </p>
         </div>
       </button>
       <button
