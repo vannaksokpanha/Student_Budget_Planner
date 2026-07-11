@@ -15,18 +15,24 @@ const User = sequelize.define('User', {
      },
      email: {
         type: DataTypes.STRING(100),
-        allowNull: false,
-        unique: true
+        allowNull: false
      },
      password: {
         type: DataTypes.STRING(255),
         allowNull: false,
         field: 'password_hash'
      },
-     
+
 },{
         tableName: 'users',
-        timestamps: false
+        timestamps: false,
+        // Named explicitly so sync({ alter: true }) recognizes it as already
+        // existing on restart instead of adding a new duplicate unique index
+        // each time (the same bug ran budget_groups out of MySQL's 64-key
+        // limit once already).
+        indexes: [
+            { unique: true, fields: ['email'], name: 'users_email_unique' }
+        ]
 });
 
 module.exports = User;

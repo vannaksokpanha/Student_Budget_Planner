@@ -4,6 +4,7 @@ const Budget = require("./Budget");
 const BudgetGroup = require("./BudgetGroup");
 const BudgetGroupMember = require("./BudgetGroupMember");
 const Expense = require("./Expense");
+const ExpenseItem = require("./ExpenseItem");
 const ExpensePreset = require("./ExpensePreset");
 const SavingGoal = require("./SavingGoal");
 const Category = require("./Category");
@@ -22,6 +23,9 @@ Expense.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
 
 BudgetGroup.hasMany(Expense, { foreignKey: "group_id", onDelete: "SET NULL" });
 Expense.belongsTo(BudgetGroup, { foreignKey: "group_id", onDelete: "SET NULL" });
+
+Expense.hasMany(ExpenseItem, { foreignKey: "expense_id", onDelete: "CASCADE" });
+ExpenseItem.belongsTo(Expense, { foreignKey: "expense_id", onDelete: "CASCADE" });
 
 User.hasMany(SavingGoal, { foreignKey: "user_id", onDelete: "CASCADE" });
 SavingGoal.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
@@ -44,6 +48,7 @@ module.exports = {
     BudgetGroup,
     BudgetGroupMember,
     Expense,
+    ExpenseItem,
     ExpensePreset,
     SavingGoal,
     Category

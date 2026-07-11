@@ -8,5 +8,6 @@
     "**/dist": true,
     "**/node_modules": true
   },
-  "css.lint.unknownAtRules": "ignore"
+  "css.lint.unknownAtRules": "ignore",
+  "postman.settings.dotenv-detection-notification-visibility": false
 }
