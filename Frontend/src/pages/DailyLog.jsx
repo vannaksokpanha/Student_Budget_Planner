@@ -7,8 +7,10 @@ import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
 import EditExpenseSheet from '../components/EditExpenseSheet';
 import PresetItem from '../components/PresetItem';
+import CategoryChips from '../components/CategoryChips';
+import { getCategoryIcon } from '../utils/categoryIcon';
 
-const API = 'http://localhost:3000/api';
+import { API } from '../utils/api';
 
 const isTokenValid = (token) => {
   try {
@@ -235,11 +237,14 @@ const DailyLog = () => {
     <div
       className="min-h-screen bg-brand-base pb-24 md:pb-10 md:pl-56"
       style={{
-        // Overspent turns the whole page's wash orange, fading down its full
-        // height so there's no hard cutoff line anywhere
+        // Two layers: the money-doodle pattern (white at 15% opacity, tiled)
+        // over the page gradient. Overspent turns the wash orange, fading
+        // down the full height so there's no hard cutoff line anywhere
         backgroundImage: remaining < 0
-          ? 'linear-gradient(to bottom, rgba(249, 115, 22, 0.55), rgba(249, 115, 22, 0.05))'
-          : 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.15))'
+          ? "url('/Balance-Pattern.svg'), linear-gradient(to bottom, rgba(249, 115, 22, 0.55), rgba(249, 115, 22, 0.05))"
+          : "url('/Balance-Pattern.svg'), linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))",
+        backgroundSize: '1000px auto, auto',
+        backgroundRepeat: 'repeat, no-repeat'
       }}
     >
       {/* On desktop the content sits in a centered phone-width column beside
@@ -248,85 +253,114 @@ const DailyLog = () => {
 
       {/* Header — transparent over the page's purple; the overspend warning
           lives on the hero box below, not up here */}
-      <div className="relative px-5 pt-12 pb-10 min-h-45 md:rounded-3xl md:pt-10">
-        {/* Top right: daily allowance vertically centered beside the profile */}
-        <div className="absolute top-12 right-5 flex items-center gap-3">
-          <div className="flex flex-col justify-center text-right">
-            <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Allowance</p>
-            <p className="text-white text-xl font-causten font-extrabold leading-none">${dailyBudget.toFixed(2)}</p>
-            {/* Where the number comes from: base rate ± banked carryover */}
-            {baseAllowance > 0 && (
-              <p className="text-white/50 text-[10px] font-causten leading-none mt-1">
-                {dailyBudget - baseAllowance > 0.005
-                  ? `$${baseAllowance.toFixed(2)}/day + $${(dailyBudget - baseAllowance).toFixed(2)} saved up`
-                  : dailyBudget - baseAllowance < -0.005
-                    ? `$${baseAllowance.toFixed(2)}/day − $${(baseAllowance - dailyBudget).toFixed(2)} behind`
-                    : `$${baseAllowance.toFixed(2)}/day · right on pace`}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={() => navigate('/profile')}
-            className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
-          >
-            <span className="text-white font-causten font-bold text-base">
-              {userName.charAt(0).toUpperCase()}
-            </span>
-          </button>
-        </div>
+      <div className="relative px-5 pt-12 pb-0 md:rounded-3xl md:pt-10">
+        {/* Profile avatar — pinned top-right, same spot as on the Budget page */}
+        <button
+          onClick={() => navigate('/profile')}
+          className="absolute top-12 right-5 w-12 h-12 rounded-full bg-white/30 flex items-center justify-center shrink-0"
+        >
+          <span className="text-white font-causten font-extrabold text-lg">
+            {userName.charAt(0).toUpperCase()}
+          </span>
+        </button>
 
-        <div className="mb-6 pr-40">
-          <h1 className="text-white font-causten font-extrabold tracking-tight leading-none">
-            <span className="block text-2xl text-white/80">Today's</span>
-            <span className="block text-5xl mt-1">Record</span>
-          </h1>
-          <p className="text-white/50 text-sm font-causten mt-1">
+        <div className="mb-4 pr-16">
+          <p className="text-white/60 text-base font-causten">Today's</p>
+          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Record</h1>
+          <p className="text-white/90 text-sm font-causten font-semibold mt-1">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
 
-        {/* Remaining Today — hero box with the allowance bar along its bottom edge.
-            When overspent, the big number stays at $0.00 (what's actually
-            spendable) and the deficit is spelled out underneath instead of
-            showing a raw negative. */}
-        <div className="relative bg-white/15 rounded-2xl px-4 pt-9 pb-11 text-center">
-          <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">Remaining Today</p>
-          <p className="text-white text-6xl font-causten font-extrabold tracking-tight">
-            ${Math.max(0, remaining).toFixed(2)}
-          </p>
-          {remaining < 0 && (
-            <p className="text-orange-200 text-sm font-causten font-semibold mt-2">
-              You're ${Math.abs(remaining).toFixed(2)} behind — tomorrow's allowance will absorb it
-            </p>
-          )}
+        {/* Hero card: Remaining Today as a slim status strip (label left,
+            amount right, drain bar underneath), then the quick-add form as
+            the card's main event. When overspent, the amount stays at $0.00
+            (what's actually spendable) and the deficit is spelled out. */}
+        <div className="bg-white rounded-2xl shadow-lg px-5 pt-4 pb-4">
+          {/* One fraction over the bar: remaining / allowance — exactly what
+              the bar measures. The allowance rides along smaller and muted;
+              the breakdown of where it comes from sits top-right. */}
+          <div className="flex justify-between items-start gap-3 mb-2">
+            <div>
+              <p className="text-brand-dark-violet/60 text-xs font-causten font-bold uppercase tracking-widest">Remaining Today</p>
+              <p className="flex items-baseline gap-1.5">
+                <span className={`text-xl font-causten font-extrabold tracking-tight ${remaining < 0 ? 'text-orange-500' : 'text-brand-dark-violet'}`}>
+                  ${Math.max(0, remaining).toFixed(2)}
+                </span>
+                <span className="text-sm font-causten font-bold text-brand-dark-violet/45">
+                  / ${dailyBudget.toFixed(2)}
+                </span>
+              </p>
+            </div>
+            {baseAllowance > 0 && (
+              <div className="text-right shrink-0">
+                <p className="text-brand-dark-violet/60 text-xs font-causten font-bold uppercase tracking-widest">Allowance</p>
+                <p className="text-[11px] font-causten leading-tight mt-2">
+                  <span className="text-brand-dark-violet/50">{`$${baseAllowance.toFixed(2)}/day`}</span>
+                  <span
+                    className={`font-semibold ${
+                      dailyBudget - baseAllowance > 0.005
+                        ? 'text-emerald-500'
+                        : dailyBudget - baseAllowance < -0.005
+                          ? 'text-orange-500'
+                          : 'text-brand-dark-violet/50'
+                    }`}
+                  >
+                    {dailyBudget - baseAllowance > 0.005
+                      ? `  + $${(dailyBudget - baseAllowance).toFixed(2)} saved`
+                      : dailyBudget - baseAllowance < -0.005
+                        ? `  − $${(baseAllowance - dailyBudget).toFixed(2)} behind`
+                        : '  on track'}
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* starts the day full and drains as money goes out */}
-          <div className="absolute left-4 right-4 bottom-4 h-1.5 rounded-full bg-white/20 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${remainPct * 100}%`,
-                backgroundColor: remaining < 0 ? '#FB923C' : '#FFDBFD'
+                backgroundColor: remaining < 0 ? '#FB923C' : '#6367FF'
               }}
+            />
+          </div>
+
+          {remaining < 0 && (
+            <p className="text-orange-500 text-xs font-causten font-semibold mt-1.5">
+              You're ${Math.abs(remaining).toFixed(2)} behind — tomorrow's allowance will absorb it
+            </p>
+          )}
+
+          {/* Receipt tear line — hand-drawn dashes so the spacing is ours:
+              10px dash, 10px gap (border-dashed can't control frequency) */}
+          <div
+            className="h-0.5 mt-4"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(to right, rgba(69, 71, 144, 0.25) 0 10px, transparent 10px 20px)'
+            }}
+          />
+          {/* Record an expense — the card's hero, so it keeps the big type */}
+          <div className="pt-4">
+            <ExpenseForm
+              bare
+              label="Record an expense"
+              namePlaceholder="Note (optional)"
+              categories={categories}
+              onRequestNewCategory={() => setShowCategoryForm(true)}
+              onSubmit={handleAdd}
+              prefill={formPrefill}
+              showDate
             />
           </div>
         </div>
       </div>
 
-      {/* Quick Add card */}
-      <div className="relative z-10 mx-5 -mt-5">
-        <ExpenseForm
-          label="Log an expense"
-          namePlaceholder="Note (optional)"
-          categories={categories}
-          onRequestNewCategory={() => setShowCategoryForm(true)}
-          onSubmit={handleAdd}
-          prefill={formPrefill}
-          showDate
-        />
-      </div>
-
       {/* Quick Access */}
-      <div className="mx-5 mt-7">
+      <div className="mx-5 mt-4">
         <div className="flex justify-between items-center mb-2">
           <p className="font-causten font-bold text-white text-xl">
             Quick Access
@@ -340,7 +374,7 @@ const DailyLog = () => {
         </div>
 
         {presets.length === 0 ? (
-          <p className="text-white/60 text-sm">No presets yet — add one to log common expenses in one tap.</p>
+          <p className="text-white/60 text-sm">No presets yet — add one to record common expenses in one tap.</p>
         ) : (
           <div className="grid grid-cols-4 gap-2">
             {presets.map(preset => (
@@ -363,13 +397,13 @@ const DailyLog = () => {
             <div className="flex justify-between items-center mb-5">
               <p className="font-causten font-bold text-brand-dark-violet text-xl">Add Preset</p>
               <button onClick={() => { setShowPresetForm(false); setPresetFormError(''); }}>
-                <TbX className="w-5 h-5 text-gray-400" />
+                <TbX className="w-5 h-5 text-brand-dark-violet/60" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Amount</p>
+                <p className="text-sm text-brand-dark-violet/80 uppercase tracking-wider mb-1">Amount</p>
                 <div className="flex items-center gap-1 border-b border-gray-100 pb-2">
                   <span className="text-2xl font-causten font-bold text-brand-dark-violet">$</span>
                   <input
@@ -383,33 +417,21 @@ const DailyLog = () => {
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Category</p>
-                <select
-                  value={presetForm.category_id}
-                  onChange={e => {
-                    if (e.target.value === '__add_new__') {
-                      setShowCategoryForm(true);
-                      return;
-                    }
-                    setPresetForm(f => ({ ...f, category_id: e.target.value }));
-                  }}
-                  className="w-full text-base text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent appearance-none p-0"
-                >
-                  <option value="">Uncategorized</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  <option value="__add_new__">+ Add new category</option>
-                </select>
-              </div>
+              <CategoryChips
+                categories={categories}
+                value={presetForm.category_id}
+                onChange={id => setPresetForm(f => ({ ...f, category_id: id }))}
+                onRequestNew={() => setShowCategoryForm(true)}
+              />
 
               <div>
-                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Note (optional)</p>
+                <p className="text-sm text-brand-dark-violet/80 uppercase tracking-wider mb-1">Note (optional)</p>
                 <input
                   type="text"
                   placeholder="e.g. Morning coffee"
                   value={presetForm.note}
                   onChange={e => setPresetForm(f => ({ ...f, note: e.target.value }))}
-                  className="w-full text-base text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-gray-300"
+                  className="w-full text-base text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-brand-dark-violet/40"
                 />
               </div>
             </div>
@@ -443,31 +465,34 @@ const DailyLog = () => {
               <LiaPiggyBankSolid className="w-16 h-16 text-brand-dark-violet" />
             </div>
             <div className="text-center">
-              <p className="text-white font-causten font-bold text-lg">Nothing logged yet</p>
+              <p className="text-white font-causten font-bold text-lg">Nothing recorded yet</p>
               <p className="text-white/60 text-sm mt-1">Type an amount above and tap + ADD</p>
             </div>
           </div>
         ) : (
           <div className="space-y-2">
             {/* Each entry is its own compact one-line card; tap to edit */}
-            {expenses.map(e => (
+            {expenses.map(e => {
+              const CategoryIcon = getCategoryIcon(e.categoryName);
+              return (
               <button
                 key={e.id}
                 onClick={() => setEditing(e)}
-                className="w-full bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-2.5 text-left transition-colors hover:bg-brand-light-violet"
+                className="w-full bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-2.5 text-left hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet"
               >
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: e.categoryColor }} />
+                <CategoryIcon className="w-4.5 h-4.5 shrink-0" style={{ color: e.categoryColor }} />
                 <p className="text-brand-dark-violet text-sm font-semibold truncate">
                   {e.note || e.categoryName || 'Uncategorized'}
                 </p>
                 {e.note && (
-                  <p className="text-gray-300 text-xs shrink-0">{e.categoryName || 'Uncategorized'}</p>
+                  <p className="text-brand-dark-violet/45 text-xs shrink-0">{e.categoryName || 'Uncategorized'}</p>
                 )}
                 <p className="ml-auto text-brand-dark-violet font-causten font-bold text-sm shrink-0">
                   ${e.amount.toFixed(2)}
                 </p>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

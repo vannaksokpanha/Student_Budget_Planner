@@ -71,7 +71,7 @@ const ExpenseForm = ({
       <div className="flex items-stretch gap-2">
         <div className="flex-1 min-w-0">
           {label && (
-            <p className={`text-sm font-causten font-bold uppercase tracking-widest mb-4 ${dark ? 'text-white/60' : 'text-gray-400'}`}>
+            <p className={`text-sm font-causten font-bold uppercase tracking-widest mb-4 ${dark ? 'text-white/60' : 'text-brand-dark-violet/80'}`}>
               {label}
             </p>
           )}
@@ -86,7 +86,7 @@ const ExpenseForm = ({
               onChange={e => setAmount(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleAdd()}
               className={`flex-1 text-4xl font-causten font-extrabold border-none outline-none bg-transparent min-w-0 ${
-                dark ? 'text-white placeholder-white/25' : 'text-brand-dark-violet placeholder-gray-200'
+                dark ? 'text-white placeholder-white/25' : 'text-brand-dark-violet placeholder-brand-dark-violet/30'
               }`}
             />
           </div>

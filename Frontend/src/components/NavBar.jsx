@@ -20,7 +20,7 @@ const NavBar = () => {
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-causten font-bold text-sm transition-colors ${
                                 location.pathname === item.path
                                     ? 'bg-brand-dark-violet text-white'
-                                    : 'text-gray-500 hover:text-brand-dark-violet hover:bg-brand-light-violet/60'
+                                    : 'text-brand-dark-violet/75 hover:text-brand-dark-violet hover:bg-brand-light-violet/60'
                             }`}
                         >
                             {item.Icon && <item.Icon className="w-5 h-5 fill-current" />}
@@ -44,7 +44,7 @@ const NavBar = () => {
                                 ${
                                     location.pathname === item.path
                                         ? 'text-brand-dark-violet'
-                                        : 'text-gray-500 hover:text-brand-dark-violet hover:scale-105'
+                                        : 'text-brand-dark-violet/75 hover:text-brand-dark-violet hover:scale-105'
                                 }
                             `}
                         >

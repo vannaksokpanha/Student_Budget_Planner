@@ -23,13 +23,13 @@ export default function GoalCard({ goal, onOpenModal, onDelete }) {
             {goal.goal_name}
           </p>
           {deadline && (
-            <p className="text-gray-300 text-xs mt-0.5">Target date · {deadline}</p>
+            <p className="text-brand-dark-violet/45 text-xs mt-0.5">Target date · {deadline}</p>
           )}
         </div>
         <button
           onClick={() => onDelete(goal.goal_id)}
           aria-label={`Delete ${goal.goal_name}`}
-          className="text-gray-300 hover:text-red-400 transition-colors shrink-0 mt-1"
+          className="text-brand-dark-violet/45 hover:text-red-400 transition-colors shrink-0 mt-1"
         >
           <TbX className="w-4 h-4" />
         </button>
@@ -41,7 +41,7 @@ export default function GoalCard({ goal, onOpenModal, onDelete }) {
           <p className="text-brand-dark-violet font-causten font-extrabold text-2xl">
             ${current.toFixed(2)}
           </p>
-          <p className="text-gray-400 text-sm font-causten truncate">of ${target.toFixed(2)}</p>
+          <p className="text-brand-dark-violet/60 text-sm font-causten truncate">of ${target.toFixed(2)}</p>
         </div>
         <span
           className={`shrink-0 text-xs font-causten font-bold rounded-full px-2.5 py-1 ${
@@ -68,7 +68,7 @@ export default function GoalCard({ goal, onOpenModal, onDelete }) {
           onClick={() => onOpenModal(goal, 'deduct')}
           className="flex-1 py-2 rounded-xl border border-brand-dark-violet/20 text-brand-dark-violet
                      text-xs font-causten font-bold flex items-center justify-center gap-1
-                     hover:bg-brand-dark-violet/5 transition-colors"
+                     hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
         >
           <TbMinus className="w-3.5 h-3.5" /> Withdraw
         </button>
@@ -76,7 +76,7 @@ export default function GoalCard({ goal, onOpenModal, onDelete }) {
           onClick={() => onOpenModal(goal, 'add')}
           className="flex-1 py-2 rounded-xl bg-brand-dark-violet text-white
                      text-xs font-causten font-bold flex items-center justify-center gap-1
-                     hover:bg-brand-base transition-colors"
+                     hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
         >
           <TbPlus className="w-3.5 h-3.5" /> Add savings
         </button>

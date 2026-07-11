@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API } from '../utils/api';
 import { signupValidation } from '../validations/auth/signUp.js'
 import { Link } from 'react-router-dom'
 
@@ -23,7 +24,7 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:3000/api/auth/signup', {
+      const res = await fetch(`${API}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values)
@@ -131,7 +132,7 @@ const Signup = () => {
                 <button
                   type='submit'
                   disabled={loading}
-                  className='w-full py-3 bg-white/20 hover:bg-white/30 rounded-lg font-semibold text-white transition-colors'
+                  className='w-full py-3 bg-white/20 hover:bg-white/30 hover:-translate-y-0.5 hover:shadow-md rounded-lg font-semibold text-white transition-all duration-150'
                 >
                   {loading ? 'Signing up...' : 'Sign up'}
                 </button>
@@ -204,7 +205,7 @@ const Signup = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full border-brand-dark-violet py-3 text-brand-dark-violet bg-brand-light-pink hover:text-white hover:bg-brand-dark-violet rounded-lg font-semibold transition-colors'
+              className='w-full border-brand-dark-violet py-3 text-brand-dark-violet bg-brand-light-pink hover:text-white hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md rounded-lg font-semibold transition-all duration-150'
             >
               {loading ? 'Signing up...' : 'Sign up'}
             </button>

@@ -56,21 +56,24 @@ const expenseKey = (e) =>
   `${e.category_id ?? 'none'}::${(e.expense_description || '').trim().toLowerCase()}`;
 
 // ── The core formula ──────────────────────────────────────────────────────
-// Allowance model: fixed base + carryover ("banking").
+// Allowance model: adaptive re-pacing — the allowance is always defined BY
+// the pool, so the two can never disagree.
 //
-//   base            = (income − planned) ÷ days from the anchor to month end
-//   daily_allowance = base × days credited so far − daily spending before today
-//                     (what the user may spend TODAY, carryover included)
-//   available       = income − planned − all daily spending this month
+//   pool (available) = income − planned − savings − all daily spending
+//   daily_allowance  = (pool before today's spending) ÷ days remaining
+//                      (what the user may spend TODAY; today's own spending
+//                      is excluded here — the Record page subtracts it live)
+//   base_allowance   = (income − planned) ÷ days from the anchor to month end
+//                      (the original plan rate, shown as "$X/day")
 //
-// The base only moves when income or bills change — never because the user
-// spent money. Underspending yesterday banks into today; overspending digs
-// into today. Spending exactly base every day keeps the allowance rock-steady.
-// Today's own spending is deliberately excluded here: the Daily Log page
-// subtracts it live on top of the returned allowance.
+// Every change to the pool — spending, a new bill, a savings deposit or
+// withdrawal — automatically re-spreads what's left over the days that
+// remain. Underspending yesterday nudges every remaining day up a little;
+// overspending or saving nudges them down. The allowance can never promise
+// money the pool doesn't hold.
 //
 // `anchorDate` is when the user's budget began (Budget.start_date) — someone
-// who sets up mid-month is only credited days from that point onward.
+// who sets up mid-month started their plan rate from that day.
 const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) => {
   const now = new Date();
   const [start, end] = monthRange(now);
@@ -91,7 +94,8 @@ const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) =>
   const sumWhere = (test) =>
     expenses.filter(test).reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
-  const totalPlanned = sumWhere(e => RESERVED_TYPES.includes(e.expense_type));
+  const totalPlanned = sumWhere(e => BUDGET_TYPES.includes(e.expense_type));
+  const totalSavings = sumWhere(e => e.expense_type === TYPES.SAVINGS);
   const spentThisMonth = sumWhere(e => e.expense_type === TYPES.DAILY);
   const spentBeforeToday = sumWhere(e => e.expense_type === TYPES.DAILY && dateOf(e) < today);
 
@@ -105,16 +109,25 @@ const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) =>
       ? anchor.getDate()
       : 1;
 
-  const budgetDays = daysInMonth - anchorDay + 1;                   // days the base spreads across
-  const daysCredited = Math.max(0, now.getDate() - anchorDay + 1);  // allowance days granted so far (incl. today)
+  const budgetDays = daysInMonth - anchorDay + 1; // days the plan rate spreads across
 
   const base = budgetDays > 0 ? Math.max(0, income - totalPlanned) / budgetDays : 0;
 
+  // What's still in the pool before today's spending, re-spread over the
+  // days left (including today)
+  const daysLeft = daysRemainingInMonth();
+  const poolBeforeToday = Math.max(0, income - totalPlanned - totalSavings - spentBeforeToday);
+
   return {
-    daily_allowance: base * daysCredited - spentBeforeToday,
+    daily_allowance: daysLeft > 0 ? poolBeforeToday / daysLeft : poolBeforeToday,
     base_allowance: base,
-    available: Math.max(0, income - totalPlanned - spentThisMonth),
-    days_remaining: daysRemainingInMonth()
+    available: Math.max(0, income - totalPlanned - totalSavings - spentThisMonth),
+    days_remaining: daysLeft,
+    // The pool's ingredients, so pages can show HOW `available` was reached
+    // (income − planned − savings − spent) instead of just the result
+    total_planned: totalPlanned,
+    total_savings: totalSavings,
+    spent_this_month: spentThisMonth
   };
 };
 
@@ -123,7 +136,16 @@ const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) =>
 const refreshBudget = async (userId) => {
   const budget = await Budget.findOne({ where: { user_id: userId } });
   if (!budget) {
-    return { budget: null, daily_allowance: 0, base_allowance: 0, available: 0, days_remaining: daysRemainingInMonth() };
+    return {
+      budget: null,
+      daily_allowance: 0,
+      base_allowance: 0,
+      available: 0,
+      days_remaining: daysRemainingInMonth(),
+      total_planned: 0,
+      total_savings: 0,
+      spent_this_month: 0
+    };
   }
   const numbers = await computeBudgetNumbers(userId, budget.monthly_income, budget.start_date);
   await budget.update({ daily_allowance: numbers.base_allowance });

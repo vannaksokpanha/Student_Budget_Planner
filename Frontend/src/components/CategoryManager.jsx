@@ -35,7 +35,7 @@ const CategoryManager = ({ categories, onAdd, onDelete, onClose }) => {
         <div className="flex justify-between items-center mb-5">
           <p className="font-causten font-bold text-brand-dark-violet text-lg">Categories</p>
           <button onClick={onClose}>
-            <TbX className="w-5 h-5 text-gray-400" />
+            <TbX className="w-5 h-5 text-brand-dark-violet/60" />
           </button>
         </div>
 
@@ -48,30 +48,30 @@ const CategoryManager = ({ categories, onAdd, onDelete, onClose }) => {
                   <p className="text-brand-dark-violet text-sm">{c.name}</p>
                 </div>
                 <button onClick={() => onDelete(c.id)}>
-                  <TbTrash className="w-4 h-4 text-gray-300 hover:text-red-400 transition-colors" />
+                  <TbTrash className="w-4 h-4 text-brand-dark-violet/45 hover:text-red-400 transition-colors" />
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest mb-3">Add New</p>
+        <p className="text-xs font-causten font-bold text-brand-dark-violet/60 uppercase tracking-widest mb-3">Add New</p>
 
         <div className="space-y-4">
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Name</p>
+            <p className="text-xs text-brand-dark-violet/60 uppercase tracking-wider mb-1">Name</p>
             <input
               type="text"
               autoFocus
               placeholder="e.g. Rent"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-gray-300"
+              className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-brand-dark-violet/40"
             />
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Color</p>
+            <p className="text-xs text-brand-dark-violet/60 uppercase tracking-wider mb-2">Color</p>
             <div className="flex flex-wrap gap-2">
               {CATEGORY_COLORS.map(c => (
                 <button

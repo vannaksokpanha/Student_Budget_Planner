@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar'
 
@@ -14,7 +15,7 @@ const Profile = () => {
         return navigate("/login", { replace: true });
       }
       try {
-        const res = await fetch("http://localhost:3000/api/home/home", {
+        const res = await fetch(`${API}/home/home`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -38,19 +39,19 @@ const Profile = () => {
 
   return (
     <div className="bottom-nav fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-[520px] bg-white flex justify-around py-2.5 pb-3.5 rounded-t-[24px] rounded-b-[24px] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-[100] md:bottom-5">
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/home')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-brand-dark-violet/60 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/home')}>
             <i className="fas fa-home text-lg"></i>
             <span>Home</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent">
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-brand-dark-violet/60 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent">
             <i className="fas fa-credit-card text-lg"></i>
             <span>Expenses</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/savings')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-brand-dark-violet/60 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/savings')}>
             <i className="fas fa-piggy-bank text-lg"></i>
             <span>Savings</span>
           </a>
-          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-gray-400 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/summary')}>
+          <a className="nav-item flex flex-col items-center gap-1 cursor-pointer text-brand-dark-violet/60 text-xs font-semibold transition-all duration-300 no-underline px-2 py-1 border-none bg-transparent hover:text-[#4A5CFF]" onClick={() => navigate('/summary')}>
             <i className="fas fa-chart-pie text-lg"></i>
             <span>Summary</span>
           </a>

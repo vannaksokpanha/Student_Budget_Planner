@@ -4,7 +4,7 @@ import { TbChevronLeft, TbChevronRight } from "react-icons/tb";
 import NavBar from '../components/NavBar';
 import ExpenseListItem from '../components/ExpenseListItem';
 
-const API = 'http://localhost:3000/api';
+import { API } from '../utils/api';
 
 const isTokenValid = (token) => {
   try {
@@ -43,15 +43,24 @@ const Summary = () => {
   const [monthDate, setMonthDate] = useState(new Date());
   const [monthExpenses, setMonthExpenses] = useState([]);
 
+  // Current month's budget numbers (income, planned, savings, spent, left) —
+  // pre-calculated by the backend, drives the Left to Spend card
+  const [budgetNumbers, setBudgetNumbers] = useState(null);
+
   const navigate = useNavigate();
   const userName = localStorage.getItem('userName') || 'there';
 
-  // Auth guard on mount
+  // Auth guard on mount, then fetch the current month's budget numbers
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token || !isTokenValid(token)) {
       navigate('/login', { replace: true });
+      return;
     }
+    fetch(`${API}/monthly-budget`, { headers: authHeader() })
+      .then(r => r.json())
+      .then(data => setBudgetNumbers(data))
+      .catch(() => setBudgetNumbers(null));
   }, [navigate]);
 
   // Fetch the picked day's expenses
@@ -98,6 +107,16 @@ const Summary = () => {
     }, {})
   ).sort((a, b) => b.total - a.total);
 
+  // Left to Spend card — always the CURRENT month (unlike the sections below,
+  // which follow the pickers), because it's the user's live pool right now
+  const income = parseFloat(budgetNumbers?.monthly_income) || 0;
+  const reservedPlanned = parseFloat(budgetNumbers?.total_planned) || 0;
+  const reservedSavings = parseFloat(budgetNumbers?.total_savings) || 0;
+  const spentSoFar = parseFloat(budgetNumbers?.spent_this_month) || 0;
+  const leftToSpend = parseFloat(budgetNumbers?.available) || 0;
+  const showPool = income > 0;
+  const currentMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
   const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const isCurrentMonth =
     monthDate.getFullYear() === new Date().getFullYear() &&
@@ -130,8 +149,42 @@ const Summary = () => {
         </div>
       </div>
 
+      {/* Left to Spend — the live pool for the current month: income minus
+          everything reserved (bills, planned, savings) and spent so far.
+          Lives here rather than on the Budget page because its inputs span
+          every page, and Summary is where the whole month reconciles. */}
+      {showPool && (
+        <div className="relative z-10 mx-5 -mt-5">
+          <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
+            <div className="flex justify-between items-baseline mb-3">
+              <p className="font-causten font-bold text-brand-dark-violet text-xl">Left to Spend</p>
+              <p className="text-xs text-brand-dark-violet/45 font-causten font-bold">{currentMonthLabel}</p>
+            </div>
+
+            {[
+              ['Monthly income', income, false],
+              ['Bills & planned', reservedPlanned, true],
+              ['Savings', reservedSavings, true],
+              ['Pocket spending', spentSoFar, true]
+            ].map(([label, value, minus]) => (
+              <div key={label} className="flex justify-between items-center py-1">
+                <p className="text-sm text-brand-dark-violet/60 font-semibold">{label}</p>
+                <p className="text-sm text-brand-dark-violet font-causten font-bold">
+                  {minus ? '− ' : ''}${value.toFixed(2)}
+                </p>
+              </div>
+            ))}
+
+            <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-100">
+              <p className="text-xs text-brand-dark-violet/60 font-semibold uppercase tracking-widest">Left to spend</p>
+              <p className="text-brand-dark-violet font-causten font-extrabold text-xl">${leftToSpend.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Expense Report — filtered by day */}
-      <div className="relative z-10 mx-5 -mt-5">
+      <div className={showPool ? 'mx-5 mt-4' : 'relative z-10 mx-5 -mt-5'}>
         <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
           <div className="flex justify-between items-center gap-3 mb-4">
             <p className="font-causten font-bold text-brand-dark-violet text-xl">
@@ -147,7 +200,7 @@ const Summary = () => {
           </div>
 
           {dayExpenses.length === 0 ? (
-            <p className="text-gray-300 text-sm text-center py-4">Nothing logged on this day.</p>
+            <p className="text-brand-dark-violet/45 text-sm text-center py-4">Nothing recorded on this day.</p>
           ) : (
             <div>
               {/* Bills & Planned — budget items ticked off as paid on this day.
@@ -198,7 +251,7 @@ const Summary = () => {
               )}
 
               <div className="flex justify-between items-center pt-3">
-                <p className="text-xs text-gray-400 font-semibold">
+                <p className="text-xs text-brand-dark-violet/60 font-semibold">
                   Total · {dayExpenses.length} {dayExpenses.length === 1 ? 'expense' : 'expenses'}
                 </p>
                 <p className="text-brand-dark-violet font-causten font-bold">${dayTotal.toFixed(2)}</p>
@@ -219,7 +272,7 @@ const Summary = () => {
               <button
                 onClick={() => shiftMonth(-1)}
                 aria-label="Previous month"
-                className="text-gray-400 hover:text-brand-dark-violet transition-colors"
+                className="text-brand-dark-violet/60 hover:text-brand-dark-violet transition-colors"
               >
                 <TbChevronLeft className="w-4 h-4" />
               </button>
@@ -230,7 +283,7 @@ const Summary = () => {
                 onClick={() => shiftMonth(1)}
                 disabled={isCurrentMonth}
                 aria-label="Next month"
-                className="text-gray-400 hover:text-brand-dark-violet transition-colors disabled:opacity-20"
+                className="text-brand-dark-violet/60 hover:text-brand-dark-violet transition-colors disabled:opacity-20"
               >
                 <TbChevronRight className="w-4 h-4" />
               </button>
@@ -238,7 +291,7 @@ const Summary = () => {
           </div>
 
           {byCategory.length === 0 ? (
-            <p className="text-gray-300 text-sm text-center py-4">No spending this month.</p>
+            <p className="text-brand-dark-violet/45 text-sm text-center py-4">No spending this month.</p>
           ) : (
             <div className="space-y-3">
               {byCategory.map(cat => {
@@ -252,7 +305,7 @@ const Summary = () => {
                       </div>
                       <p className="text-sm shrink-0">
                         <span className="text-brand-dark-violet font-causten font-bold">${cat.total.toFixed(2)}</span>
-                        <span className="text-gray-300 text-xs ml-1.5">{pct.toFixed(0)}%</span>
+                        <span className="text-brand-dark-violet/45 text-xs ml-1.5">{pct.toFixed(0)}%</span>
                       </p>
                     </div>
                     <div className="w-full h-2 rounded-full bg-gray-100">
@@ -265,7 +318,7 @@ const Summary = () => {
                 );
               })}
               <div className="flex justify-between items-center pt-2">
-                <p className="text-xs text-gray-400 font-semibold">Total this month</p>
+                <p className="text-xs text-brand-dark-violet/60 font-semibold">Total this month</p>
                 <p className="text-brand-dark-violet font-causten font-bold">${monthTotal.toFixed(2)}</p>
               </div>
             </div>

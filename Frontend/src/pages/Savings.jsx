@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import { API } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar'
 import GoalCard from "../components/GoalCard";
-import { MdBeachAccess, MdWineBar, MdLaptopMac, MdPhoneAndroid } from 'react-icons/md';
-import { RiFirstAidKitLine } from 'react-icons/ri';
+import { TbBeach, TbGlassFull, TbDeviceLaptop, TbDeviceMobile, TbFirstAidKit, TbX } from 'react-icons/tb';
 import { LiaPiggyBankSolid } from 'react-icons/lia';
 
 const Savings = () => {
@@ -32,7 +32,7 @@ const Savings = () => {
         return navigate("/login", { replace: true });
       }
       try {
-        const res = await fetch("http://localhost:3000/api/home/home", {
+        const res = await fetch(`${API}/home/home`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -58,7 +58,7 @@ const Savings = () => {
     const fetchGoalsData = async () => {
       const token = localStorage.getItem('token');
       try {
-        const goalsRes = await fetch("http://localhost:3000/api/savings", {
+        const goalsRes = await fetch(`${API}/savings`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -76,11 +76,11 @@ const Savings = () => {
   }, [ready]);
 
   const suggestions = [
-    { label: 'Fun Vacation',    Icon: MdBeachAccess },
-    { label: 'Fancy Dinner',    Icon: MdWineBar },
-    { label: 'New Laptop',      Icon: MdLaptopMac },
-    { label: 'New Phone',       Icon: MdPhoneAndroid },
-    { label: 'Emergency Fund',  Icon: RiFirstAidKitLine },
+    { label: 'Fun Vacation',    Icon: TbBeach },
+    { label: 'Fancy Dinner',    Icon: TbGlassFull },
+    { label: 'New Laptop',      Icon: TbDeviceLaptop },
+    { label: 'New Phone',       Icon: TbDeviceMobile },
+    { label: 'Emergency Fund',  Icon: TbFirstAidKit },
   ];
 
   const openModal = () => {
@@ -125,7 +125,7 @@ const Savings = () => {
     const amount = updateAction === 'deduct' ? -Number(updateAmount) : Number(updateAmount);
 
     try {
-      const res = await fetch(`http://localhost:3000/api/savings/${selectedGoal.goal_id}`, {
+      const res = await fetch(`${API}/savings/${selectedGoal.goal_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ const Savings = () => {
   const handleDeleteGoal = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:3000/api/savings/${goalToDelete}`, {
+      const res = await fetch(`${API}/savings/${goalToDelete}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -185,7 +185,7 @@ const Savings = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch("http://localhost:3000/api/savings", {
+      const res = await fetch(`${API}/savings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -313,10 +313,10 @@ const Savings = () => {
             <button
               key={s.label}
               onClick={() => openModalWithSuggestion(s.label)}
-              className="shrink-0 bg-white rounded-xl shadow-sm hover:bg-brand-dark-violet hover:shadow-md transition-all group px-4 py-3 flex flex-col items-center gap-1.5 min-w-24 active:scale-95"
+              className="shrink-0 bg-white rounded-xl shadow-sm px-4 py-3 flex flex-col items-center gap-1.5 min-w-24 active:scale-95 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet"
             >
-              <s.Icon className="w-8 h-8 text-brand-dark-violet group-hover:text-white transition-colors" />
-              <span className="text-[10px] font-causten font-bold text-brand-dark-violet group-hover:text-white text-center uppercase leading-tight transition-colors">
+              <s.Icon className="w-8 h-8 text-brand-dark-violet" />
+              <span className="text-[10px] font-causten font-bold text-brand-dark-violet text-center uppercase leading-tight">
                 {s.label}
               </span>
             </button>
@@ -329,7 +329,7 @@ const Savings = () => {
         <div className="flex justify-between items-center mb-3">
           <p className="font-causten font-bold text-brand-dark-violet text-xl">Your Goals</p>
           {goals.length > 0 && (
-            <p className="text-xs text-gray-400">{goals.length} active</p>
+            <p className="text-xs text-brand-dark-violet/60">{goals.length} active</p>
           )}
         </div>
 
@@ -341,7 +341,7 @@ const Savings = () => {
               </div>
               <div className="text-center">
                 <p className="text-brand-dark-violet font-causten font-bold text-base">No goals yet</p>
-                <p className="text-gray-300 text-xs mt-1">Tap + to start saving toward something</p>
+                <p className="text-brand-dark-violet/45 text-xs mt-1">Tap + to start saving toward something</p>
               </div>
             </div>
           ) : (
@@ -374,105 +374,88 @@ const Savings = () => {
 
       <NavBar />
 
-      {/* Add / Deduct Savings Modal */}
+      {/* Add / Withdraw Savings sheet — same anatomy as the Edit Expense and
+          Add Preset sheets: white sheet, title + × row, underline amount
+          field, one solid action button */}
       {updateModal && selectedGoal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white rounded-t-3xl shadow-2xl overflow-hidden">
-
-            {/* Coloured header */}
-            <div className="bg-brand-dark-violet px-6 pt-6 pb-8">
-              <div className="w-10 h-1 rounded-full bg-white/30 mx-auto mb-4" />
-              <p className="text-white/60 text-xs font-causten font-semibold uppercase tracking-widest mb-1">
-                {updateAction === 'add' ? 'Adding to' : 'Deducting from'}
+        <>
+          <div className="fixed inset-0 bg-black/30 z-55" onClick={() => !updating && setUpdateModal(false)} />
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-60 px-5 pt-5 pb-10 shadow-2xl animate-slide-up">
+            <div className="flex justify-between items-center mb-5">
+              <p className="font-causten font-bold text-brand-dark-violet text-lg">
+                {updateAction === 'add' ? 'Add to' : 'Withdraw from'} {selectedGoal.goal_name}
               </p>
-              <h2 className="text-white text-2xl font-causten font-extrabold uppercase mb-4">
-                {selectedGoal.goal_name}
-              </h2>
+              <button onClick={() => !updating && setUpdateModal(false)}>
+                <TbX className="w-5 h-5 text-brand-dark-violet/60" />
+              </button>
+            </div>
 
-              {/* Current vs Target */}
-              <div className="flex justify-between items-end mb-2">
-                <div>
-                  <p className="text-white/50 text-xs font-causten">Saved so far</p>
-                  <p className="text-white text-xl font-causten font-bold">
+            <div className="space-y-4">
+              {/* Where the goal stands: saved / target over its progress bar */}
+              <div>
+                <div className="flex justify-between items-baseline mb-1">
+                  <p className="text-xs text-brand-dark-violet/80 uppercase tracking-wider">Saved so far</p>
+                  <p className="text-xs text-brand-dark-violet/80 uppercase tracking-wider">Target</p>
+                </div>
+                <div className="flex justify-between items-baseline mb-2">
+                  <p className="font-causten font-bold text-brand-dark-violet">
                     ${Number(selectedGoal.current_amount).toFixed(2)}
                   </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-white/50 text-xs font-causten">Target</p>
-                  <p className="text-white text-xl font-causten font-bold">
+                  <p className="font-causten font-bold text-brand-dark-violet">
                     ${Number(selectedGoal.target_amount).toFixed(2)}
                   </p>
                 </div>
+                <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-brand-base transition-all duration-500"
+                    style={{
+                      width: `${Math.min((Number(selectedGoal.current_amount) / Number(selectedGoal.target_amount)) * 100, 100)}%`
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Progress bar */}
-              <div className="w-full h-2 rounded-full bg-white/20">
-                <div
-                  className="h-2 rounded-full bg-brand-light-pink transition-all duration-500"
-                  style={{
-                    width: `${Math.min((Number(selectedGoal.current_amount) / Number(selectedGoal.target_amount)) * 100, 100)}%`
-                  }}
-                />
-              </div>
-              <p className="text-white/50 text-xs font-causten mt-1 text-right">
-                {Math.min((Number(selectedGoal.current_amount) / Number(selectedGoal.target_amount)) * 100, 100).toFixed(1)}%
-              </p>
-            </div>
-
-            {/* Input section */}
-            <div className="px-6 pt-5 pb-10 flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                  Amount ($)
-                </label>
-                <input
-                  type="number"
-                  value={updateAmount}
-                  onChange={e => setUpdateAmount(e.target.value)}
-                  placeholder="0.00"
-                  min="0"
-                  className="border-2 border-gray-200 rounded-xl px-4 py-3 text-brand-dark-violet
-                             font-causten focus:outline-none focus:border-brand-dark-violet transition-colors"
-                />
-                <p className="text-xs text-gray-400 font-causten mt-1">
+              <div>
+                <p className="text-sm text-brand-dark-violet/80 uppercase tracking-wider mb-1">Amount</p>
+                <div className="flex items-center gap-1 border-b border-gray-100 pb-2">
+                  <span className="text-2xl font-causten font-bold text-brand-dark-violet">$</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={updateAmount}
+                    onChange={e => setUpdateAmount(e.target.value)}
+                    placeholder="0.00"
+                    min="0"
+                    className="flex-1 text-2xl font-causten font-bold text-brand-dark-violet border-none outline-none bg-transparent placeholder-brand-dark-violet/30"
+                  />
+                </div>
+                <p className="text-xs text-brand-dark-violet/45 font-causten mt-1.5">
                   {updateAction === 'add'
                     ? "Comes out of this month's budget — your allowance will adjust."
                     : "Goes back into this month's budget."}
                 </p>
               </div>
-
-              {updateError && <p className="text-red-500 text-sm font-causten">{updateError}</p>}
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setUpdateModal(false)}
-                  disabled={updating}
-                  className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-500
-                             font-causten font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateGoal}
-                  disabled={updating}
-                  className="flex-1 py-3 rounded-xl bg-brand-dark-violet text-white
-                             font-causten font-bold hover:bg-brand-dark-violet/90 transition-colors
-                             disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {updating ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Confirm'
-                  )}
-                </button>
-              </div>
             </div>
 
+            {updateError && (
+              <p className="mt-4 text-sm text-red-400 font-causten text-center">{updateError}</p>
+            )}
+            <button
+              onClick={handleUpdateGoal}
+              disabled={updating || !updateAmount}
+              className="w-full mt-4 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 disabled:opacity-20 flex items-center justify-center gap-2"
+            >
+              {updating ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                updateAction === 'add' ? 'Add to savings' : 'Withdraw'
+              )}
+            </button>
           </div>
-        </div>
+        </>
       )}
 
       {/* Delete Confirmation Modal */}
@@ -480,17 +463,17 @@ const Savings = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="w-[80%] max-w-sm bg-white rounded-2xl px-6 py-8 shadow-2xl flex flex-col gap-3">
             <h2 className="font-causten font-bold text-brand-dark-violet text-xl">Delete Goal?</h2>
-            <p className="text-sm text-gray-500 font-causten">This will permanently remove the goal from your savings.</p>
+            <p className="text-sm text-brand-dark-violet/75 font-causten">This will permanently remove the goal from your savings.</p>
             <div className="flex gap-3 mt-2">
               <button
                 onClick={() => setGoalToDelete(null)}
-                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-500 font-causten font-bold hover:bg-gray-50 transition-colors"
+                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-brand-dark-violet/75 font-causten font-bold hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteGoal}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-causten font-bold hover:bg-red-600 transition-colors"
+                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-causten font-bold hover:bg-red-600 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
               >
                 Delete
               </button>
@@ -520,7 +503,7 @@ const Savings = () => {
             <div className="flex flex-col gap-4">
               {/* Goal Name */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-brand-dark-violet/75 uppercase tracking-widest">
                   Goal Name
                 </label>
                 <input
@@ -536,7 +519,7 @@ const Savings = () => {
 
               {/* Target Amount */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-brand-dark-violet/75 uppercase tracking-widest">
                   Target Amount ($)
                 </label>
                 <input
@@ -553,8 +536,8 @@ const Savings = () => {
 
               {/* Current Savings */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                  Current Savings ($) <span className="normal-case text-gray-400 font-normal">(optional)</span>
+                <label className="text-xs font-bold text-brand-dark-violet/75 uppercase tracking-widest">
+                  Current Savings ($) <span className="normal-case text-brand-dark-violet/60 font-normal">(optional)</span>
                 </label>
                 <input
                   type="number"
@@ -570,8 +553,8 @@ const Savings = () => {
 
               {/* Target Date */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                  Target Date <span className="normal-case text-gray-400 font-normal">(optional)</span>
+                <label className="text-xs font-bold text-brand-dark-violet/75 uppercase tracking-widest">
+                  Target Date <span className="normal-case text-brand-dark-violet/60 font-normal">(optional)</span>
                 </label>
                 <input
                   type="date"
@@ -593,8 +576,8 @@ const Savings = () => {
                 <button
                   onClick={closeModal}
                   disabled={submitting}
-                  className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-500
-                             font-causten font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-brand-dark-violet/75
+                             font-causten font-bold hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -602,7 +585,7 @@ const Savings = () => {
                   onClick={handleAddGoal}
                   disabled={submitting}
                   className="flex-1 py-3 rounded-xl bg-brand-dark-violet text-white
-                             font-causten font-bold hover:bg-brand-dark-violet/90 transition-colors
+                             font-causten font-bold hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md transition-all duration-150
                              disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? (

@@ -37,7 +37,10 @@ const getBudget = async (req, res) => {
         monthly_income: 0,
         daily_allowance: 0,
         available: 0,
-        days_remaining: daysRemainingInMonth()
+        days_remaining: daysRemainingInMonth(),
+        total_planned: 0,
+        total_savings: 0,
+        spent_this_month: 0
       });
     }
 
