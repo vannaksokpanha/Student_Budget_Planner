@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { TbPencil } from "react-icons/tb";
+import { TbPencil, TbArrowBackUp, TbCalendarHeart, TbChevronDown } from "react-icons/tb";
+import NavBar from '../components/NavBar';
 import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
 import ExpenseListItem from '../components/ExpenseListItem';
@@ -51,6 +52,7 @@ const mapCategory = (c) => ({
 
 // One budget section (Monthly Bills or Planned This Month): header, tick-off
 // checklist, and total row. Adding happens in the page's universal add card.
+// The chevron collapses the list down to a one-line summary (count + total).
 const BudgetSection = ({
   title,
   subtitle,
@@ -60,44 +62,70 @@ const BudgetSection = ({
   totalLabel,
   onItemClick,
   onTogglePaid
-}) => (
-  <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
-    <div className="flex justify-between items-start gap-3 mb-4">
-      <div>
-        <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest">{title}</p>
-        <p className="text-gray-300 text-xs mt-0.5">{subtitle}</p>
-      </div>
-      {headerAction}
-    </div>
+}) => {
+  const [open, setOpen] = useState(false);
 
-    {items.length === 0 ? (
-      <p className="text-gray-300 text-sm text-center py-3">{emptyText}</p>
-    ) : (
-      <div>
-        {items.map(item => (
-          <ExpenseListItem
-            key={item.id}
-            primaryText={item.name}
-            categoryName={item.categoryName}
-            categoryColor={item.categoryColor}
-            amount={item.amount}
-            paid={item.paid}
-            onTogglePaid={() => onTogglePaid(item)}
-            onClick={() => onItemClick(item)}
-          />
-        ))}
-        {/* Total row — display-only sum of this section's items */}
-        <div className="flex justify-between items-center pt-3">
-          <p className="text-xs text-gray-400 font-semibold">{totalLabel}</p>
-          <p className="text-brand-dark-violet font-causten font-bold">
-            ${items.reduce((sum, i) => sum + i.amount, 0).toFixed(2)}
-          </p>
+  const total = items.reduce((sum, i) => sum + i.amount, 0);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
+      <div className={`flex justify-between items-start gap-3 ${open ? 'mb-4' : ''}`}>
+        <div>
+          <p className="font-causten font-bold text-brand-dark-violet text-xl">{title}</p>
+          <p className="text-gray-300 text-xs mt-0.5">{subtitle}</p>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {headerAction}
+          <button
+            onClick={() => setOpen(v => !v)}
+            aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
+            className="text-gray-400 hover:text-brand-dark-violet transition-colors"
+          >
+            <TbChevronDown className={`w-5 h-5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+          </button>
         </div>
       </div>
-    )}
 
-  </div>
-);
+      {open ? (
+        items.length === 0 ? (
+          <p className="text-gray-300 text-sm text-center py-3">{emptyText}</p>
+        ) : (
+          <div>
+            {items.map(item => (
+              <ExpenseListItem
+                key={item.id}
+                primaryText={item.name}
+                categoryName={item.categoryName}
+                categoryColor={item.categoryColor}
+                amount={item.amount}
+                paid={item.paid}
+                onTogglePaid={() => onTogglePaid(item)}
+                onClick={() => onItemClick(item)}
+              />
+            ))}
+            {/* Total row — display-only sum of this section's items */}
+            <div className="flex justify-between items-center pt-3">
+              <p className="text-xs text-gray-400 font-semibold">{totalLabel}</p>
+              <p className="text-brand-dark-violet font-causten font-bold">
+                ${total.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        )
+      ) : (
+        /* Collapsed — one-line summary so the numbers stay visible */
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-xs text-gray-400 font-semibold">
+            {items.length} {items.length === 1 ? 'item' : 'items'}
+          </p>
+          <p className="text-brand-dark-violet font-causten font-bold">
+            ${total.toFixed(2)}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -284,7 +312,7 @@ const MonthlyBudget = () => {
 
   // Saves an edited expense; isBill comes from the edit sheet's "repeats every
   // month" toggle and is translated to the expense_type the API expects
-  const handleUpdateExpense = async (id, { amount, category_id, name, isBill }) => {
+  const handleUpdateExpense = async (id, { amount, category_id, name }) => {
     const res = await fetch(`${API}/monthly-budget/expenses/${id}`, {
       method: 'PUT',
       headers: authHeader(),
@@ -292,7 +320,9 @@ const MonthlyBudget = () => {
         amount,
         category_id,
         expense_description: name,
-        expense_type: isBill ? 'Monthly Bill' : 'Expected Expense'
+        // Editing never moves an item between sections — it keeps the type it
+        // was created with
+        expense_type: editing.isBill ? 'Monthly Bill' : 'Expected Expense'
       })
     });
     if (!res.ok) return;
@@ -334,6 +364,10 @@ const MonthlyBudget = () => {
   // Which month this budget applies to, e.g. "August 2026"
   const currentMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
+  // Fraction of monthly income still unreserved — drives the header ring gauge
+  const monthlyIncome = parseFloat(budget) || 0;
+  const leftPct = monthlyIncome > 0 ? Math.max(0, Math.min(available / monthlyIncome, 1)) : 0;
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -356,18 +390,18 @@ const MonthlyBudget = () => {
 
         {/* Page title */}
         <div className="mb-6 pr-16">
-          <p className="text-white/60 text-sm font-causten">Manage your</p>
+          <p className="text-white/60 text-base font-causten">Manage your</p>
           <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Income</h1>
         </div>
 
-        {/* Stat boxes */}
-        <div className="flex gap-3">
+        {/* Stats stacked on the left — ring gauge on the right */}
+        <div className="flex items-center justify-between gap-5">
 
-          {/* Monthly Income — the only value the user can edit */}
-          <div className="flex-1 min-w-0 bg-white/15 rounded-2xl px-4 py-3">
-            <div className="flex items-center justify-between gap-2 mb-0.5">
-              <p className="text-white/60 text-xs font-causten uppercase tracking-wide">Monthly Income</p>
-              <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex-1 min-w-0 flex flex-col gap-3">
+            {/* Monthly Income — the only value the user can edit */}
+            <div className="bg-white/15 rounded-2xl px-4 py-4">
+              <div className="flex items-center gap-1.5 mb-1">
+                <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest">Monthly Income</p>
                 {budgetSaved && <span className="text-emerald-300 text-xs font-causten font-bold">✓</span>}
                 {!editingBudget && (
                   <button onClick={() => setEditingBudget(true)} className="text-white/60 hover:text-white transition-colors">
@@ -375,44 +409,82 @@ const MonthlyBudget = () => {
                   </button>
                 )}
               </div>
+              {editingBudget ? (
+                <div className="flex items-center gap-1">
+                  <span className="text-white text-2xl font-causten font-extrabold">$</span>
+                  <input
+                    autoFocus
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={budget}
+                    onChange={e => { setBudget(e.target.value); setBudgetSaved(false); }}
+                    onBlur={handleSaveBudget}
+                    onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
+                    className="w-full min-w-0 bg-transparent border-b border-white/30 focus:border-white text-white text-2xl font-causten font-extrabold outline-none placeholder-white/40"
+                  />
+                </div>
+              ) : (
+                <p className="text-white text-2xl font-causten font-extrabold">
+                  ${monthlyIncome.toFixed(2)}
+                </p>
+              )}
             </div>
-            {editingBudget ? (
-              <div className="flex items-center gap-1">
-                <span className="text-white text-2xl font-causten font-extrabold">$</span>
-                <input
-                  autoFocus
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  value={budget}
-                  onChange={e => { setBudget(e.target.value); setBudgetSaved(false); }}
-                  onBlur={handleSaveBudget}
-                  onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
-                  className="w-full min-w-0 bg-transparent border-b border-white/30 focus:border-white text-white text-2xl font-causten font-extrabold outline-none placeholder-white/40"
-                />
-              </div>
-            ) : (
-              <p className="text-white text-2xl font-causten font-extrabold">
-                ${(parseFloat(budget) || 0).toFixed(2)}
-              </p>
-            )}
+
+            {/* Left to Spend — read-only, recalculated by the backend whenever an expense is added/removed */}
+            <div className="bg-white/15 rounded-2xl px-4 py-4">
+              <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest mb-1">Left to Spend</p>
+              <p className="text-white text-2xl font-causten font-extrabold">${available.toFixed(2)}</p>
+            </div>
           </div>
 
-          {/* Left to Spend — read-only, recalculated by the backend whenever an expense is added/removed */}
-          <div className="flex-1 min-w-0 bg-white/15 rounded-2xl px-4 py-3">
-            <p className="text-white/60 text-xs font-causten uppercase tracking-wide mb-0.5">Left to Spend</p>
-            <p className="text-white text-2xl font-causten font-extrabold">${available.toFixed(2)}</p>
+          {/* Ring gauge — drains as income gets reserved, orange when low */}
+          <div className="shrink-0 flex flex-col items-center">
+          <div className="relative w-40 h-40">
+            <svg width="100%" height="100%" viewBox="0 0 160 160" className="-rotate-90" aria-hidden="true">
+              <circle cx="80" cy="80" r="70" fill="none" strokeWidth="11" stroke="rgba(255,255,255,0.22)" />
+              <circle
+                cx="80" cy="80" r="70" fill="none"
+                strokeWidth="11" strokeLinecap="round"
+                pathLength="100" strokeDasharray="100"
+                strokeDashoffset={100 * (1 - leftPct)}
+                stroke={leftPct < 0.2 ? '#FB923C' : '#FFDBFD'}
+                className="transition-all duration-500"
+              />
+            </svg>
+            <div className="absolute inset-0 grid place-items-center text-center">
+              <div>
+                <p className="text-white text-3xl font-causten font-extrabold leading-none">{Math.round(leftPct * 100)}%</p>
+                <p className="text-white/60 text-[9px] font-causten font-bold uppercase tracking-widest mt-1.5">left this month</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Summary line — value comes directly from the backend */}
+          <p className="text-white/40 text-xs font-causten text-center w-40 mt-1">
+            {daysRemaining} days remaining this month
+          </p>
           </div>
         </div>
-
-        {/* Summary line — value comes directly from the backend */}
-        <p className="text-white/40 text-xs font-causten mt-3">
-          {daysRemaining} days remaining this month
-        </p>
       </div>
 
       {/* ── Content: summary strip + the two budget sections ───────────────── */}
-      <div className="relative z-10 mx-4 -mt-5 space-y-4">
+      <div className="relative z-10 -mt-6 bg-brand-white rounded-t-3xl px-4 pt-5 space-y-4">
+
+        {/* Today's date — month carries the emphasis, day + year trail after */}
+        <div className="flex items-center gap-2.5 px-1">
+          <div className="bg-brand-light-pink rounded-full p-2 shrink-0">
+            <TbCalendarHeart className="w-5 h-5 text-brand-dark-violet" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-3xl font-causten font-extrabold text-brand-dark-violet">
+              {new Date().toLocaleString('en-US', { month: 'long' })}
+            </h2>
+            <p className="text-lg font-causten font-bold text-gray-400">
+              {new Date().getDate()}, {new Date().getFullYear()}
+            </p>
+          </div>
+        </div>
 
         {/* Spending summary — three equal areas: bills, planned, combined total */}
         <div className="bg-white rounded-2xl shadow-lg py-4 grid grid-cols-3 divide-x divide-gray-300">
@@ -432,18 +504,21 @@ const MonthlyBudget = () => {
 
         {/* Universal add — one full-width button; a segmented switch picks the section */}
         {addOpen ? (
-          <div className="bg-brand-light-violet rounded-2xl shadow-lg px-5 py-5">
+          <div
+            className="bg-brand-base rounded-2xl shadow-lg px-5 py-5 origin-top motion-safe:animate-dropdown"
+            style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
+          >
             <div className="flex justify-between items-center mb-3">
-              <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest">Add an expense</p>
-              <button onClick={() => setAddOpen(false)} className="text-sm font-causten font-bold text-brand-dark-violet">
+              <p className="text-sm font-causten font-bold text-white uppercase tracking-widest">Add an expense</p>
+              <button onClick={() => setAddOpen(false)} className="text-sm font-causten font-bold text-white/80 hover:text-white transition-colors">
                 Cancel
               </button>
             </div>
-            <div className="flex bg-brand-dark-violet/10 rounded-xl p-1 mb-4">
+            <div className="flex bg-white/10 rounded-xl p-1 mb-4">
               <button
                 onClick={() => setAddType('bill')}
                 className={`flex-1 py-2 rounded-lg text-sm font-causten font-bold transition-colors ${
-                  addType === 'bill' ? 'bg-white text-brand-dark-violet shadow' : 'text-gray-400'
+                  addType === 'bill' ? 'bg-white text-brand-dark-violet shadow' : 'text-white/50'
                 }`}
               >
                 Monthly Bill
@@ -451,7 +526,7 @@ const MonthlyBudget = () => {
               <button
                 onClick={() => setAddType('planned')}
                 className={`flex-1 py-2 rounded-lg text-sm font-causten font-bold transition-colors ${
-                  addType === 'planned' ? 'bg-white text-brand-dark-violet shadow' : 'text-gray-400'
+                  addType === 'planned' ? 'bg-white text-brand-dark-violet shadow' : 'text-white/50'
                 }`}
               >
                 Planned This Month
@@ -459,6 +534,7 @@ const MonthlyBudget = () => {
             </div>
             <ExpenseForm
               bare
+              dark
               namePlaceholder="Name (optional)"
               categories={categories}
               onRequestNewCategory={() => setShowCategoryForm(true)}
@@ -469,7 +545,7 @@ const MonthlyBudget = () => {
         ) : (
           <button
             onClick={() => setAddOpen(true)}
-            className="w-full py-4 bg-brand-dark-violet text-white rounded-2xl shadow-lg font-causten font-bold text-sm active:scale-95 transition-transform"
+            className="w-full py-4 bg-brand-dark-violet text-white rounded-2xl shadow-lg font-causten font-bold text-sm hover:bg-brand-base transition-colors duration-200 active:scale-95"
           >
             + Add an expense
           </button>
@@ -481,8 +557,9 @@ const MonthlyBudget = () => {
           headerAction={
             <button
               onClick={handleRestoreBills}
-              className="text-xs font-causten font-bold text-brand-dark-violet shrink-0"
+              className="flex items-center gap-1 text-xs font-causten font-bold text-brand-dark-violet shrink-0 hover:text-brand-base transition-colors"
             >
+              <TbArrowBackUp className="w-3.5 h-3.5" />
               Reuse last month's
             </button>
           }
@@ -507,10 +584,9 @@ const MonthlyBudget = () => {
 
       {editing && (
         <EditExpenseSheet
-          expense={{ id: editing.id, amount: editing.amount, categoryId: editing.categoryId, name: editing.name, isBill: editing.isBill }}
+          expense={{ id: editing.id, amount: editing.amount, categoryId: editing.categoryId, name: editing.name }}
           categories={categories}
           namePlaceholder="Name (optional)"
-          showRepeatToggle
           onRequestNewCategory={() => setShowCategoryForm(true)}
           onSave={handleUpdateExpense}
           onDelete={handleDelete}

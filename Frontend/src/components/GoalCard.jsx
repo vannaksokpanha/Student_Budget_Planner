@@ -1,65 +1,85 @@
-import { LiaPiggyBankSolid } from 'react-icons/lia';
+import { TbX, TbPlus, TbMinus } from 'react-icons/tb';
 
-export default function GoalCard({ goal, index, onOpenModal, onDelete }) {
+// One savings goal: amount-first layout — saved so far is the headline, the
+// remaining details (target, %, deadline) support it. Matches the flat white
+// card style used across the app.
+export default function GoalCard({ goal, onOpenModal, onDelete }) {
   const current = Number(goal.current_amount);
   const target = Number(goal.target_amount);
-  const percentage = target > 0 ? Math.min((current / target) * 100, 100).toFixed(1) : 0;
+  const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
+  const reached = target > 0 && current >= target;
+
+  const deadline = goal.target_date
+    ? new Date(goal.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : null;
 
   return (
-    <div className="w-[95%] bg-white rounded-3xl px-5 py-5 shadow-md flex items-center gap-4 relative">
+    <div className="w-full bg-white rounded-2xl shadow-lg px-5 py-4">
 
-      {/* Delete button */}
-      <button
-        onClick={() => onDelete(goal.goal_id)}
-        className="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition-colors text-lg"
-      >
-        ✕
-      </button>
+      {/* Name row — name left, delete right */}
+      <div className="flex justify-between items-start gap-3">
+        <div className="min-w-0">
+          <p className="font-causten font-bold text-brand-dark-violet text-lg truncate">
+            {goal.goal_name}
+          </p>
+          {deadline && (
+            <p className="text-gray-300 text-xs mt-0.5">Target date · {deadline}</p>
+          )}
+        </div>
+        <button
+          onClick={() => onDelete(goal.goal_id)}
+          aria-label={`Delete ${goal.goal_name}`}
+          className="text-gray-300 hover:text-red-400 transition-colors shrink-0 mt-1"
+        >
+          <TbX className="w-4 h-4" />
+        </button>
+      </div>
 
-      {/* Left: Icon + Goal label + Goal name */}
-      <div className="flex flex-col items-center gap-1 min-w-17.5">
-        <LiaPiggyBankSolid className="w-12 h-12 text-brand-dark-violet" />
-        <span className="text-[10px] text-gray-400 font-causten font-semibold uppercase tracking-widest">
-          Goal #{index + 1}
-        </span>
-        <span className="text-sm font-causten font-extrabold text-brand-dark-violet uppercase leading-tight text-center">
-          {goal.goal_name}
+      {/* Amounts — saved so far leads, target and % follow */}
+      <div className="flex justify-between items-end mt-3">
+        <div className="flex items-baseline gap-1.5 min-w-0">
+          <p className="text-brand-dark-violet font-causten font-extrabold text-2xl">
+            ${current.toFixed(2)}
+          </p>
+          <p className="text-gray-400 text-sm font-causten truncate">of ${target.toFixed(2)}</p>
+        </div>
+        <span
+          className={`shrink-0 text-xs font-causten font-bold rounded-full px-2.5 py-1 ${
+            reached
+              ? 'bg-emerald-100 text-emerald-600'
+              : 'bg-brand-light-pink text-brand-dark-violet'
+          }`}
+        >
+          {reached ? 'Reached 🎉' : `${Math.round(pct)}%`}
         </span>
       </div>
 
-      {/* Right: Percentage + Progress bar + Buttons */}
-      <div className="flex flex-col flex-1 gap-2">
+      {/* Progress bar */}
+      <div className="w-full h-2 rounded-full bg-brand-dark-violet/10 mt-2 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${reached ? 'bg-emerald-400' : 'bg-brand-light-pink'}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
 
-        <span className="text-base font-causten font-bold text-brand-dark-violet">
-          {percentage}% / 100%
-        </span>
-
-        {/* Progress bar */}
-        <div className="w-full h-2 rounded-full bg-brand-dark-violet/20">
-          <div
-            className="h-2 rounded-full bg-brand-light-pink transition-all duration-500"
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
-
-        {/* Buttons */}
-        <div className="flex gap-2 mt-1">
-          <button
-            onClick={() => onOpenModal(goal, 'deduct')}
-            className="flex-1 py-2 rounded-lg border-2 border-brand-dark-violet text-brand-dark-violet
-                       text-[10px] font-causten font-bold hover:bg-brand-dark-violet hover:text-white transition-colors"
-          >
-            DEDUCT SAVINGS
-          </button>
-          <button
-            onClick={() => onOpenModal(goal, 'add')}
-            className="flex-1 py-2 rounded-lg bg-brand-dark-violet text-white
-                       text-[10px] font-causten font-bold hover:bg-brand-dark-violet/90 transition-colors"
-          >
-            ADD SAVINGS
-          </button>
-        </div>
-
+      {/* Actions */}
+      <div className="flex gap-2 mt-3">
+        <button
+          onClick={() => onOpenModal(goal, 'deduct')}
+          className="flex-1 py-2 rounded-xl border border-brand-dark-violet/20 text-brand-dark-violet
+                     text-xs font-causten font-bold flex items-center justify-center gap-1
+                     hover:bg-brand-dark-violet/5 transition-colors"
+        >
+          <TbMinus className="w-3.5 h-3.5" /> Withdraw
+        </button>
+        <button
+          onClick={() => onOpenModal(goal, 'add')}
+          className="flex-1 py-2 rounded-xl bg-brand-dark-violet text-white
+                     text-xs font-causten font-bold flex items-center justify-center gap-1
+                     hover:bg-brand-base transition-colors"
+        >
+          <TbPlus className="w-3.5 h-3.5" /> Add savings
+        </button>
       </div>
     </div>
   );

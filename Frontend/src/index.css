@@ -2,7 +2,9 @@
 
 
 body {
-  font-family: "Poppins", sans-serif;
+  /* Poppins was never imported — CaustenRound is the app's actual brand face,
+     and with Regular (400) now loaded it can serve body text too */
+  font-family: 'CaustenRound', sans-serif;
 }
 
 
@@ -13,6 +15,14 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+
+@font-face {
+  font-family: 'CaustenRound';
+  src: url('/fonts/Causten-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 @font-face {
   font-family: 'CaustenRound';
@@ -37,6 +47,18 @@ input:-webkit-autofill:focus {
   font-weight: 600;
   font-style: normal;
   font-display: swap;
+}
+
+/* Strip the native up/down spinner from all number inputs — amounts are
+   typed, not stepped */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .scrollbar-hide {
@@ -68,5 +90,33 @@ html::-webkit-scrollbar {
   --color-brand-light-violet: #ECECFF;
 
   --color-brand-gradient: linear-gradient(180deg, #005CFF 0%, #6367FF 100%);
+
+  /* Expand-in for inline cards that open in place (e.g. Budget's add-expense card) */
+  --animate-dropdown: dropdown 0.25s ease-out;
+
+  @keyframes dropdown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px) scaleY(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scaleY(1);
+    }
+  }
+
+  /* Rise-in for bottom sheets — Savings' add-goal modal already uses this class */
+  --animate-slide-up: slide-up 0.3s ease-out;
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 

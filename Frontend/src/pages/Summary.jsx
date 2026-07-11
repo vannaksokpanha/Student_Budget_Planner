@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
-} from 'recharts';
+import { TbChevronLeft, TbChevronRight } from "react-icons/tb";
+import NavBar from '../components/NavBar';
+import ExpenseListItem from '../components/ExpenseListItem';
 
-const PIE_COLORS = ['#6367FF', '#454790', '#005CFF', '#FFDBFD', '#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3'];
+const API = 'http://localhost:3000/api';
 
 const isTokenValid = (token) => {
   try {
@@ -16,190 +15,220 @@ const isTokenValid = (token) => {
   }
 };
 
-const Summary = () => {
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState(null);
-  const [expenses, setExpenses] = useState([]);
-  const navigate = useNavigate();
+const authHeader = () => ({
+  'Content-Type': 'application/json',
+  Authorization: `Bearer ${localStorage.getItem('token')}`
+});
 
+// Local YYYY-MM-DD — avoids toISOString(), which converts to UTC first and can
+// shift the calendar day in timezones ahead of/behind UTC
+const toDateString = (date) => {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
+// First/last day of the month containing `date`, as YYYY-MM-DD strings
+const monthRange = (date) => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return [toDateString(start), toDateString(end)];
+};
+
+const Summary = () => {
+  // Day-filtered expense report
+  const [reportDate, setReportDate] = useState(toDateString(new Date()));
+  const [dayExpenses, setDayExpenses] = useState([]);
+
+  // Month-filtered category breakdown; monthDate is any day inside the month
+  const [monthDate, setMonthDate] = useState(new Date());
+  const [monthExpenses, setMonthExpenses] = useState([]);
+
+  const navigate = useNavigate();
+  const userName = localStorage.getItem('userName') || 'there';
+
+  // Auth guard on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token || !isTokenValid(token)) {
-      return navigate("/login", { replace: true });
+      navigate('/login', { replace: true });
     }
-    const init = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/home/home", {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: 'no-store'
-        });
-        if (!res.ok) {
-          setError('Unauthorized');
-          return;
-        }
-        const expRes = await fetch("http://localhost:3000/api/expenses", {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: 'no-store'
-        });
-        if (expRes.ok) {
-          const data = await expRes.json();
-          setExpenses(data);
-        }
-        setReady(true);
-      } catch {
-        navigate("/login", { replace: true });
-      }
-    };
-    init();
   }, [navigate]);
 
-  const incomeData = (() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const incomeRecords = [];
-    const baseIncome = 80;
-    let runningTotal = 0;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dailyDelta = baseIncome + ((d * 7) % 21);
-      runningTotal += dailyDelta;
-      incomeRecords.push({
-        day: d,
-        income: Math.round(runningTotal * 100) / 100,
-      });
-    }
-    return incomeRecords;
-  })();
+  // Fetch the picked day's expenses
+  useEffect(() => {
+    fetch(`${API}/summary/expenses?start=${reportDate}&end=${reportDate}`, { headers: authHeader() })
+      .then(r => r.json())
+      .then(data => setDayExpenses(Array.isArray(data) ? data : []))
+      .catch(() => setDayExpenses([]));
+  }, [reportDate]);
 
-  const outcomeData = (() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const dailyTotals = {};
-    for (let d = 1; d <= daysInMonth; d++) {
-      dailyTotals[d] = 0;
-    }
-    expenses.forEach(e => {
-      if (e.expense_date) {
-        const d = new Date(e.expense_date);
-        if (d.getMonth() === month && d.getFullYear() === year) {
-          dailyTotals[d.getDate()] = (dailyTotals[d.getDate()] || 0) + parseFloat(e.amount);
-        }
-      }
-    });
-    let runningTotal = 0;
-    const result = [];
-    for (let d = 1; d <= daysInMonth; d++) {
-      runningTotal += dailyTotals[d] || 0;
-      result.push({
-        day: d,
-        outcome: runningTotal,
-      });
-    }
-    return result;
-  })();
+  // Fetch the picked month's expenses
+  useEffect(() => {
+    const [start, end] = monthRange(monthDate);
+    fetch(`${API}/summary/expenses?start=${start}&end=${end}`, { headers: authHeader() })
+      .then(r => r.json())
+      .then(data => setMonthExpenses(Array.isArray(data) ? data : []))
+      .catch(() => setMonthExpenses([]));
+  }, [monthDate]);
 
-  const pieData = (() => {
-    const byCategory = {};
-    expenses.forEach(e => {
-      const cat = e.category || 'Uncategorized';
-      byCategory[cat] = (byCategory[cat] || 0) + parseFloat(e.amount);
-    });
-    if (Object.keys(byCategory).length === 0) {
-      return [
-        { name: 'Food & Drink', value: 320 },
-        { name: 'Transportation', value: 150 },
-        { name: 'Groceries', value: 280 },
-        { name: 'Bills', value: 200 },
-        { name: 'Rental Fee', value: 500 },
-        { name: 'Other', value: 100 },
-      ];
-    }
-    return Object.entries(byCategory).map(([name, value]) => ({ name, value }));
-  })();
+  // ── Derived display values ──────────────────────────────────────────────────
 
-  const totalIncome = incomeData.length > 0 ? incomeData[incomeData.length - 1].income : 0;
-  const totalOutcome = outcomeData.length > 0 ? outcomeData[outcomeData.length - 1].outcome : 0;
+  const dayTotal = dayExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
-  if (error) return <div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">{error}</h1></div>;
-  if (!ready) return null;
+  // Per-category totals for the picked month, largest first
+  const monthTotal = monthExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+  const byCategory = Object.values(
+    monthExpenses.reduce((acc, e) => {
+      const key = e.Category?.category_id ?? 'none';
+      acc[key] = acc[key] || {
+        name: e.Category?.name || 'Uncategorized',
+        color: e.Category?.color || '#D1D5DB',
+        total: 0
+      };
+      acc[key].total += parseFloat(e.amount);
+      return acc;
+    }, {})
+  ).sort((a, b) => b.total - a.total);
+
+  const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const isCurrentMonth =
+    monthDate.getFullYear() === new Date().getFullYear() &&
+    monthDate.getMonth() === new Date().getMonth();
+
+  const shiftMonth = (delta) => {
+    setMonthDate(d => new Date(d.getFullYear(), d.getMonth() + delta, 1));
+  };
 
   return (
     <div className="min-h-screen bg-brand-white pb-24">
+
+      {/* Header */}
       <div
-        className="px-5 pt-12 pb-10 bg-brand-base"
+        className="relative px-5 pt-12 pb-10 min-h-45 bg-brand-base"
         style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
       >
-        <p className="text-white/60 text-sm font-causten">Your</p>
-        <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Summary</h1>
+        <button
+          onClick={() => navigate('/profile')}
+          className="absolute top-12 right-5 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
+        >
+          <span className="text-white font-causten font-bold text-base">
+            {userName.charAt(0).toUpperCase()}
+          </span>
+        </button>
+
+        <div className="mb-6 pr-16">
+          <p className="text-white/60 text-sm font-causten">Your</p>
+          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Summary</h1>
+        </div>
       </div>
 
-      <div className="mx-4 space-y-4 -mt-5">
+      {/* Expense Report — filtered by day */}
+      <div className="relative z-10 mx-5 -mt-5">
         <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
-          <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest mb-1">Total Balance</p>
-          <p className="text-4xl font-causten font-extrabold text-brand-dark-violet">
-            ${(totalIncome - totalOutcome).toFixed(2)}
-          </p>
-          <div className="flex gap-4 mt-1">
-            <p className="text-xs text-emerald-500 font-semibold">
-              Income: ${totalIncome.toFixed(2)}
+          <div className="flex justify-between items-center gap-3 mb-4">
+            <p className="font-causten font-bold text-brand-dark-violet text-xl">
+              Expense Report
             </p>
-            <p className="text-xs text-red-400 font-semibold">
-              Outcome: ${totalOutcome.toFixed(2)}
-            </p>
+            <input
+              type="date"
+              value={reportDate}
+              max={toDateString(new Date())}
+              onChange={e => e.target.value && setReportDate(e.target.value)}
+              className="text-sm text-brand-dark-violet font-causten font-bold bg-transparent outline-none"
+            />
           </div>
-        </div>
 
-        <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
-          <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest mb-4">Income</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={incomeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#aaa' }} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#aaa' }} tickLine={false} axisLine={false} />
-              <Tooltip />
-              <Line type="monotone" dataKey="income" stroke="#6367FF" strokeWidth={2.5} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
-          <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest mb-4">Outcome</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={outcomeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#aaa' }} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#aaa' }} tickLine={false} axisLine={false} />
-              <Tooltip />
-              <Line type="monotone" dataKey="outcome" stroke="#FF6B6B" strokeWidth={2.5} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
-          <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest mb-4">Spending by Category</p>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                innerRadius={40}
-                dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-              >
-                {pieData.map((_, i) => (
-                  <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {dayExpenses.length === 0 ? (
+            <p className="text-gray-300 text-sm text-center py-4">Nothing logged on this day.</p>
+          ) : (
+            <div>
+              {dayExpenses.map(e => (
+                <ExpenseListItem
+                  key={e.expense_id}
+                  primaryText={e.expense_description || e.Category?.name || 'Uncategorized'}
+                  categoryName={e.Category?.name || 'Uncategorized'}
+                  categoryColor={e.Category?.color || '#D1D5DB'}
+                  secondaryText={e.expense_type}
+                  amount={parseFloat(e.amount)}
+                />
+              ))}
+              <div className="flex justify-between items-center pt-3">
+                <p className="text-xs text-gray-400 font-semibold">
+                  Total · {dayExpenses.length} {dayExpenses.length === 1 ? 'expense' : 'expenses'}
+                </p>
+                <p className="text-brand-dark-violet font-causten font-bold">${dayTotal.toFixed(2)}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Spending by Category — filtered by month */}
+      <div className="mx-5 mt-4">
+        <div className="bg-white rounded-2xl shadow-lg px-5 py-5">
+          <div className="flex justify-between items-center gap-3 mb-4">
+            <p className="font-causten font-bold text-brand-dark-violet text-xl">
+              Spending by Category
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => shiftMonth(-1)}
+                aria-label="Previous month"
+                className="text-gray-400 hover:text-brand-dark-violet transition-colors"
+              >
+                <TbChevronLeft className="w-4 h-4" />
+              </button>
+              <p className="text-sm text-brand-dark-violet font-causten font-bold whitespace-nowrap w-28 text-center">
+                {monthLabel}
+              </p>
+              <button
+                onClick={() => shiftMonth(1)}
+                disabled={isCurrentMonth}
+                aria-label="Next month"
+                className="text-gray-400 hover:text-brand-dark-violet transition-colors disabled:opacity-20"
+              >
+                <TbChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {byCategory.length === 0 ? (
+            <p className="text-gray-300 text-sm text-center py-4">No spending this month.</p>
+          ) : (
+            <div className="space-y-3">
+              {byCategory.map(cat => {
+                const pct = monthTotal > 0 ? (cat.total / monthTotal) * 100 : 0;
+                return (
+                  <div key={cat.name}>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                        <p className="text-brand-dark-violet font-semibold text-sm truncate">{cat.name}</p>
+                      </div>
+                      <p className="text-sm shrink-0">
+                        <span className="text-brand-dark-violet font-causten font-bold">${cat.total.toFixed(2)}</span>
+                        <span className="text-gray-300 text-xs ml-1.5">{pct.toFixed(0)}%</span>
+                      </p>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-gray-100">
+                      <div
+                        className="h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, backgroundColor: cat.color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="flex justify-between items-center pt-2">
+                <p className="text-xs text-gray-400 font-semibold">Total this month</p>
+                <p className="text-brand-dark-violet font-causten font-bold">${monthTotal.toFixed(2)}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <NavBar />
     </div>
   );
 };

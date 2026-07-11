@@ -1,17 +1,15 @@
 import { useState } from "react";
 import { TbX } from "react-icons/tb";
+import ConfirmDialog from "./ConfirmDialog";
 
 // Shared edit bottom sheet for an existing expense — mirrors Daily Log's
 // original "Edit Expense" sheet. `showDate` controls whether the Date field
-// appears (Daily Log entries are dated; Budget expenses aren't). `showRepeatToggle`
-// adds the Budget page's "repeats every month" switch, which moves an item
-// between the Monthly Bills and Planned This Month sections.
+// appears (Daily Log entries are dated; Budget expenses aren't).
 const EditExpenseSheet = ({
   expense,
   categories,
   namePlaceholder = 'Note (optional)',
   showDate = false,
-  showRepeatToggle = false,
   onRequestNewCategory,
   onSave,
   onDelete,
@@ -21,9 +19,7 @@ const EditExpenseSheet = ({
   const [categoryId, setCategoryId] = useState(expense.categoryId ? String(expense.categoryId) : '');
   const [name, setName] = useState(expense.name || '');
   const [date, setDate] = useState(expense.date || '');
-  // Which budget section the expense lives in: true = Monthly Bill, false = one-off.
-  // Sent back on Save; the page translates it to the expense_type the API expects.
-  const [isBill, setIsBill] = useState(!!expense.isBill);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleCategoryChange = (e) => {
     if (e.target.value === '__add_new__') {
@@ -38,8 +34,7 @@ const EditExpenseSheet = ({
       amount: parseFloat(amount) || 0,
       category_id: categoryId || null,
       name,
-      ...(showDate ? { date } : {}),
-      ...(showRepeatToggle ? { isBill } : {})
+      ...(showDate ? { date } : {})
     });
     onClose();
   };
@@ -48,6 +43,13 @@ const EditExpenseSheet = ({
     await onDelete(expense.id);
     onClose();
   };
+
+  // What the confirmation dialog calls this expense — same fallback chain the
+  // list rows use for their primary text
+  const displayName =
+    name ||
+    categories.find(c => String(c.id) === categoryId)?.name ||
+    'Uncategorized';
 
   return (
     <>
@@ -111,26 +113,11 @@ const EditExpenseSheet = ({
             </div>
           )}
 
-          {showRepeatToggle && (
-            <button onClick={() => setIsBill(v => !v)} className="w-full flex justify-between items-center gap-3">
-              <div className="text-left">
-                <p className="text-sm font-semibold text-brand-dark-violet">Repeats every month</p>
-                <p className="text-xs text-gray-300 mt-0.5">
-                  {isBill
-                    ? 'Monthly bill — comes back when you reuse last month.'
-                    : 'One-off — lives in this month only.'}
-                </p>
-              </div>
-              <div className={`w-11 h-6 rounded-full p-0.5 transition-colors shrink-0 ${isBill ? 'bg-brand-dark-violet' : 'bg-gray-200'}`}>
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${isBill ? 'translate-x-5' : ''}`} />
-              </div>
-            </button>
-          )}
         </div>
 
         <div className="flex gap-3 mt-6">
           <button
-            onClick={handleDelete}
+            onClick={() => setConfirmingDelete(true)}
             className="flex-1 py-3 rounded-xl border border-red-200 text-red-400 font-causten font-bold text-sm"
           >
             Delete
@@ -143,6 +130,15 @@ const EditExpenseSheet = ({
           </button>
         </div>
       </div>
+
+      {confirmingDelete && (
+        <ConfirmDialog
+          itemName={displayName}
+          note="This can't be undone."
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmingDelete(false)}
+        />
+      )}
     </>
   );
 };

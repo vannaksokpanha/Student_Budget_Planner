@@ -13,6 +13,7 @@ const savingsRoutes = require('./Routes/SavingsRoute');
 const categoryRoutes = require('./Routes/categoryRoute');
 const userRoutes = require('./Routes/userRoute');
 const teamBudget = require('./Routes/TeamBudgetRoute');
+const summaryRoutes = require('./Routes/summaryRoute');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -28,7 +29,8 @@ app.use('/api/monthly-budget', monthlyBudgetRoutes);
 app.use('/api/savings', savingsRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/team-budget' , teamBudget)
+app.use('/api/team-budget', teamBudget);
+app.use('/api/summary', summaryRoutes);
 
 app.listen(PORT, async () => {
   try {

@@ -6,6 +6,7 @@ import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
 import ExpenseListItem from '../components/ExpenseListItem';
 import EditExpenseSheet from '../components/EditExpenseSheet';
+import PresetItem from '../components/PresetItem';
 
 const API = 'http://localhost:3000/api';
 
@@ -58,6 +59,7 @@ const DailyLog = () => {
   const [presetFormError, setPresetFormError] = useState('');
   const [categories, setCategories] = useState([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [formPrefill, setFormPrefill] = useState(null);
   const navigate = useNavigate();
 
   const userName = localStorage.getItem('userName') || 'there';
@@ -109,22 +111,16 @@ const DailyLog = () => {
     setExpenses(prev => [mapLog(created), ...prev]);
   };
 
-  // Presets log immediately on tap (one-tap logging) — a preset already represents
-  // a fully-formed expense, so there's nothing left to review before submitting
-  const handleUsePreset = async (preset) => {
-    const res = await fetch(`${API}/daily-log`, {
-      method: 'POST',
-      headers: authHeader(),
-      body: JSON.stringify({
-        amount: preset.amount,
-        category_id: preset.categoryId || null,
-        expense_description: preset.note || '',
-        expense_date: todayString()
-      })
+  // Tapping a preset loads it into the quick-add form for review instead of
+  // logging immediately — the user often tweaks the amount or note before adding.
+  // `key` changes per tap so re-tapping the same preset re-fills the form.
+  const handleUsePreset = (preset) => {
+    setFormPrefill({
+      amount: preset.amount,
+      category_id: preset.categoryId,
+      name: preset.note || '',
+      key: Date.now()
     });
-    if (!res.ok) return;
-    const created = await res.json();
-    setExpenses(prev => [mapLog(created), ...prev]);
   };
 
   const handleAddPreset = async () => {
@@ -208,8 +204,9 @@ const DailyLog = () => {
 
   const todaySpent = expenses.reduce((sum, e) => sum + e.amount, 0);
   const remaining = dailyBudget - todaySpent;
-  const progress = dailyBudget > 0 ? Math.min(todaySpent / dailyBudget, 1) : 0;
-  const progressColor = progress < 0.6 ? 'bg-emerald-400' : progress < 0.9 ? 'bg-amber-400' : 'bg-red-400';
+  // Fraction of today's allowance still unspent — the border trace starts the
+  // day full and drains as money goes out
+  const remainPct = dailyBudget > 0 ? Math.max(0, Math.min(remaining / dailyBudget, 1)) : 0;
 
   return (
     <div className="min-h-screen bg-brand-white pb-24">
@@ -223,38 +220,41 @@ const DailyLog = () => {
             : 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))'
         }}
       >
-        <button
-          onClick={() => navigate('/profile')}
-          className="absolute top-12 right-5 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
-        >
-          <span className="text-white font-causten font-bold text-base">
-            {userName.charAt(0).toUpperCase()}
-          </span>
-        </button>
+        {/* Top right: daily allowance vertically centered beside the profile */}
+        <div className="absolute top-12 right-5 flex items-center gap-3">
+          <div className="h-12 flex flex-col justify-center text-right">
+            <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Daily Allowance</p>
+            <p className="text-white text-xl font-causten font-extrabold leading-none">${dailyBudget.toFixed(2)}</p>
+          </div>
+          <button
+            onClick={() => navigate('/profile')}
+            className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
+          >
+            <span className="text-white font-causten font-bold text-base">
+              {userName.charAt(0).toUpperCase()}
+            </span>
+          </button>
+        </div>
 
-        <div className="mb-6 pr-16">
-          <p className="text-white/60 text-sm font-causten">Hi, {userName}</p>
+        <div className="mb-6 pr-40">
+          <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
           <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Daily Log</h1>
         </div>
 
-        {/* Stat boxes */}
-        <div className="flex gap-3 mb-3">
-          <div className="flex-1 min-w-0 bg-white/15 rounded-2xl px-4 py-3">
-            <p className="text-white/60 text-xs font-causten uppercase tracking-wide mb-0.5">Daily Allowance</p>
-            <p className="text-white text-2xl font-causten font-extrabold">${dailyBudget.toFixed(2)}</p>
+        {/* Remaining Today — hero box with the allowance bar along its bottom edge */}
+        <div className="relative bg-white/15 rounded-2xl px-4 pt-9 pb-11 text-center">
+          <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">Remaining Today</p>
+          <p className="text-white text-6xl font-causten font-extrabold tracking-tight">${remaining.toFixed(2)}</p>
+          {/* starts the day full and drains as money goes out */}
+          <div className="absolute left-4 right-4 bottom-4 h-1.5 rounded-full bg-white/20 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${remainPct * 100}%`,
+                backgroundColor: remaining < 0 ? '#FB923C' : '#FFDBFD'
+              }}
+            />
           </div>
-          <div className="flex-1 min-w-0 bg-white/15 rounded-2xl px-4 py-3">
-            <p className="text-white/60 text-xs font-causten uppercase tracking-wide mb-0.5">Remaining Today</p>
-            <p className="text-white text-2xl font-causten font-extrabold">${remaining.toFixed(2)}</p>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-full bg-white/20 rounded-full h-1.5">
-          <div
-            className={`h-1.5 rounded-full transition-all duration-500 ${progressColor}`}
-            style={{ width: `${progress * 100}%` }}
-          />
         </div>
       </div>
 
@@ -266,57 +266,35 @@ const DailyLog = () => {
           categories={categories}
           onRequestNewCategory={() => setShowCategoryForm(true)}
           onSubmit={handleAdd}
+          prefill={formPrefill}
         />
       </div>
 
       {/* Quick Access */}
-      <div className="mx-5 mt-4">
+      <div className="mx-5 mt-7">
         <div className="flex justify-between items-center mb-2">
-          <p className="text-xs font-causten font-bold text-gray-400 uppercase tracking-widest">
+          <p className="font-causten font-bold text-brand-dark-violet text-xl">
             Quick Access
           </p>
           <button
             onClick={() => setShowPresetForm(true)}
-            className="flex items-center gap-1 text-brand-dark-violet text-xs font-causten font-bold"
+            className="flex items-center gap-1 text-brand-dark-violet text-sm font-causten font-bold"
           >
-            <TbPlus className="w-3.5 h-3.5" /> ADD PRESET
+            <TbPlus className="w-4 h-4" /> ADD PRESET
           </button>
         </div>
 
         {presets.length === 0 ? (
-          <p className="text-gray-300 text-xs">No presets yet — add one to log common expenses in one tap.</p>
+          <p className="text-gray-300 text-sm">No presets yet — add one to log common expenses in one tap.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-4 gap-2">
             {presets.map(preset => (
-              <div
+              <PresetItem
                 key={preset.id}
-                className="group relative bg-white rounded-xl shadow-sm hover:bg-brand-dark-violet hover:shadow-md transition-all"
-              >
-                <button
-                  onClick={() => handleUsePreset(preset)}
-                  className="w-full flex justify-between items-center px-4 py-2.5 pr-10 text-left active:scale-[0.99] transition-transform"
-                >
-                  <div className="min-w-0">
-                    <p className="text-brand-dark-violet group-hover:text-white font-semibold text-sm transition-colors truncate">
-                      {preset.categoryName || 'Uncategorized'}
-                    </p>
-                    {preset.note && (
-                      <p className="text-gray-300 group-hover:text-white/70 text-xs transition-colors truncate">
-                        {preset.note}
-                      </p>
-                    )}
-                  </div>
-                  <p className="text-brand-dark-violet group-hover:text-white font-causten font-bold text-sm transition-colors shrink-0">
-                    ${preset.amount.toFixed(2)}
-                  </p>
-                </button>
-                <button
-                  onClick={() => handleDeletePreset(preset.id)}
-                  className="absolute top-1/2 -translate-y-1/2 right-3 text-gray-300 group-hover:text-white/70 hover:text-red-400 transition-colors"
-                >
-                  <TbX className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                preset={preset}
+                onUse={handleUsePreset}
+                onDelete={handleDeletePreset}
+              />
             ))}
           </div>
         )}
@@ -328,7 +306,7 @@ const DailyLog = () => {
           <div className="fixed inset-0 bg-black/30 z-55" onClick={() => { setShowPresetForm(false); setPresetFormError(''); }} />
           <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-60 px-5 pt-5 pb-10 shadow-2xl">
             <div className="flex justify-between items-center mb-5">
-              <p className="font-causten font-bold text-brand-dark-violet text-lg">Add Preset</p>
+              <p className="font-causten font-bold text-brand-dark-violet text-xl">Add Preset</p>
               <button onClick={() => { setShowPresetForm(false); setPresetFormError(''); }}>
                 <TbX className="w-5 h-5 text-gray-400" />
               </button>
@@ -336,7 +314,7 @@ const DailyLog = () => {
 
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Amount</p>
+                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Amount</p>
                 <div className="flex items-center gap-1 border-b border-gray-100 pb-2">
                   <span className="text-2xl font-causten font-bold text-brand-dark-violet">$</span>
                   <input
@@ -351,7 +329,7 @@ const DailyLog = () => {
               </div>
 
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Category</p>
+                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Category</p>
                 <select
                   value={presetForm.category_id}
                   onChange={e => {
@@ -361,7 +339,7 @@ const DailyLog = () => {
                     }
                     setPresetForm(f => ({ ...f, category_id: e.target.value }));
                   }}
-                  className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent appearance-none p-0"
+                  className="w-full text-base text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent appearance-none p-0"
                 >
                   <option value="">Uncategorized</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -370,19 +348,19 @@ const DailyLog = () => {
               </div>
 
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Note (optional)</p>
+                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Note (optional)</p>
                 <input
                   type="text"
                   placeholder="e.g. Morning coffee"
                   value={presetForm.note}
                   onChange={e => setPresetForm(f => ({ ...f, note: e.target.value }))}
-                  className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-gray-300"
+                  className="w-full text-base text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-gray-300"
                 />
               </div>
             </div>
 
             {presetFormError && (
-              <p className="mt-4 text-xs text-red-400 font-causten text-center">{presetFormError}</p>
+              <p className="mt-4 text-sm text-red-400 font-causten text-center">{presetFormError}</p>
             )}
             <button
               onClick={handleAddPreset}
@@ -398,9 +376,9 @@ const DailyLog = () => {
       {/* Today's Spending */}
       <div className="mx-5 mt-6">
         <div className="flex justify-between items-center mb-3">
-          <p className="font-causten font-bold text-brand-dark-violet">Today's Spending</p>
+          <p className="font-causten font-bold text-brand-dark-violet text-xl">Today's Spending</p>
           {expenses.length > 0 && (
-            <p className="text-xs text-gray-400">${todaySpent.toFixed(2)} spent</p>
+            <p className="text-sm text-gray-400">${todaySpent.toFixed(2)} spent</p>
           )}
         </div>
 
@@ -410,8 +388,8 @@ const DailyLog = () => {
               <LiaPiggyBankSolid className="w-16 h-16 text-brand-dark-violet" />
             </div>
             <div className="text-center">
-              <p className="text-brand-dark-violet font-causten font-bold text-base">Nothing logged yet</p>
-              <p className="text-gray-300 text-xs mt-1">Type an amount above and tap + ADD</p>
+              <p className="text-brand-dark-violet font-causten font-bold text-lg">Nothing logged yet</p>
+              <p className="text-gray-300 text-sm mt-1">Type an amount above and tap + ADD</p>
             </div>
           </div>
         ) : (

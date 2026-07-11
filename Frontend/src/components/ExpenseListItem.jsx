@@ -16,13 +16,13 @@ const ExpenseListItem = ({ primaryText, categoryName, categoryColor, secondaryTe
         className={`flex-1 min-w-0 flex justify-between items-center gap-3 text-left ${paid ? 'opacity-40' : ''}`}
       >
         <div className="min-w-0">
-          <p className="text-brand-dark-violet font-semibold text-sm truncate">{primaryText}</p>
+          <p className="text-brand-dark-violet font-normal text-base truncate">{primaryText}</p>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: categoryColor }} />
-            <p className="text-gray-300 text-xs">{categoryName}</p>
+            <p className="text-gray-300 text-sm">{categoryName}</p>
           </div>
-          {secondaryText && <p className="text-gray-300 text-xs mt-0.5">{secondaryText}</p>}
-          {date && <p className="text-gray-300 text-xs mt-0.5">{date}</p>}
+          {secondaryText && <p className="text-gray-300 text-sm mt-0.5">{secondaryText}</p>}
+          {date && <p className="text-gray-300 text-sm mt-0.5">{date}</p>}
         </div>
         <p className="text-brand-dark-violet font-causten font-bold shrink-0">${amount.toFixed(2)}</p>
       </button>
