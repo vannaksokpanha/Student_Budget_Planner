@@ -57,6 +57,13 @@ const Expense = sequelize.define("Expense", {
     paid_at: {
         type: DataTypes.DATEONLY,
         allowNull: true
+    },
+    // Group Expense only: whether the contribution has actually been paid in,
+    // set by the group owner — separate from paid_at, which is budget-page only.
+    contribution_status: {
+        type: DataTypes.ENUM("Paid", "Pending"),
+        allowNull: true,
+        defaultValue: "Paid"
     }
 }, {
     tableName: "expenses",

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { API } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
-import NavBar from '../components/NavBar'
 import GoalCard from "../components/GoalCard";
 import { TbBeach, TbGlassFull, TbDeviceLaptop, TbDeviceMobile, TbFirstAidKit, TbX } from 'react-icons/tb';
 import { LiaPiggyBankSolid } from 'react-icons/lia';
@@ -371,8 +370,6 @@ const Savings = () => {
       >
         +
       </button>
-
-      <NavBar />
 
       {/* Add / Withdraw Savings sheet — same anatomy as the Edit Expense and
           Add Preset sheets: white sheet, title + × row, underline amount
