@@ -56,21 +56,24 @@ const expenseKey = (e) =>
   `${e.category_id ?? 'none'}::${(e.expense_description || '').trim().toLowerCase()}`;
 
 // ── The core formula ──────────────────────────────────────────────────────
-// Allowance model: adaptive re-pacing — the allowance is always defined BY
-// the pool, so the two can never disagree.
+// Allowance model: daily rollover — each day accrues one base allowance, and
+// whatever yesterday left unspent (or overspent) carries into today at full
+// value instead of being re-spread across the rest of the month.
 //
 //   pool (available) = income − planned − savings − all daily spending
-//   daily_allowance  = (pool before today's spending) ÷ days remaining
-//                      (what the user may spend TODAY; today's own spending
-//                      is excluded here — the Record page subtracts it live)
 //   base_allowance   = (income − planned) ÷ days from the anchor to month end
-//                      (the original plan rate, shown as "$X/day")
+//                      (the plan rate each day accrues, shown as "$X/day")
+//   daily_allowance  = base × days elapsed − savings − spending before today
+//                      (everything accrued so far minus everything already
+//                      taken out of it; today's own spending is excluded —
+//                      the Record page subtracts it live)
 //
-// Every change to the pool — spending, a new bill, a savings deposit or
-// withdrawal — automatically re-spreads what's left over the days that
-// remain. Underspending yesterday nudges every remaining day up a little;
-// overspending or saving nudges them down. The allowance can never promise
-// money the pool doesn't hold.
+// Underspending yesterday raises today's allowance by exactly the leftover;
+// overspending — or a savings deposit — eats into it dollar for dollar.
+// Floored at 0: a deep overspend never shows a negative allowance, it just
+// sits at 0 until the daily accrual digs it back out. Since days elapsed
+// never exceeds the budget's span, the allowance can never promise money
+// the pool doesn't hold.
 //
 // `anchorDate` is when the user's budget began (Budget.start_date) — someone
 // who sets up mid-month started their plan rate from that day.
@@ -113,13 +116,15 @@ const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) =>
 
   const base = budgetDays > 0 ? Math.max(0, income - totalPlanned) / budgetDays : 0;
 
-  // What's still in the pool before today's spending, re-spread over the
-  // days left (including today)
   const daysLeft = daysRemainingInMonth();
-  const poolBeforeToday = Math.max(0, income - totalPlanned - totalSavings - spentBeforeToday);
+
+  // Days that have accrued an allowance so far: anchor through today,
+  // inclusive (0 if the budget's start date is still ahead)
+  const daysElapsed = Math.max(0, now.getDate() - anchorDay + 1);
+  const accruedBeforeSpending = base * daysElapsed - totalSavings - spentBeforeToday;
 
   return {
-    daily_allowance: daysLeft > 0 ? poolBeforeToday / daysLeft : poolBeforeToday,
+    daily_allowance: Math.max(0, accruedBeforeSpending),
     base_allowance: base,
     available: Math.max(0, income - totalPlanned - totalSavings - spentThisMonth),
     days_remaining: daysLeft,

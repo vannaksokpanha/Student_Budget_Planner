@@ -132,7 +132,7 @@ const Signup = () => {
                 <button
                   type='submit'
                   disabled={loading}
-                  className='w-full py-3 bg-white/20 hover:bg-white/30 hover:-translate-y-0.5 hover:shadow-md rounded-lg font-semibold text-white transition-all duration-150'
+                  className='w-full py-3 bg-white/20 hover:bg-white/30 hover:-translate-y-0.5 hover:shadow-md active:scale-95 rounded-lg font-semibold text-white transition-all duration-150'
                 >
                   {loading ? 'Signing up...' : 'Sign up'}
                 </button>
@@ -205,7 +205,7 @@ const Signup = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full border-brand-dark-violet py-3 text-brand-dark-violet bg-brand-light-pink hover:text-white hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md rounded-lg font-semibold transition-all duration-150'
+              className='w-full border-brand-dark-violet py-3 text-brand-dark-violet bg-brand-light-pink hover:text-white hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 rounded-lg font-semibold transition-all duration-150'
             >
               {loading ? 'Signing up...' : 'Sign up'}
             </button>

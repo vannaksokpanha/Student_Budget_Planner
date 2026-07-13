@@ -24,10 +24,11 @@ const AddContribution = () => {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // Only the group owner can add contributions at all — everyone else gets
-  // turned back at the door instead of a form they can't submit anyway.
+  // Everyone logs their own contributions. The owner additionally gets a
+  // contributor picker so they can record entries on behalf of members
+  // (e.g. cash handed over in person).
   useEffect(() => {
-    const checkAccess = async () => {
+    const checkRole = async () => {
       try {
         const groupsRes = await fetch(`${API}/team-budget/groups`, { headers: authHeader() });
         const groups = groupsRes.ok ? await groupsRes.json() : [];
@@ -44,12 +45,12 @@ const AddContribution = () => {
           }
         }
       } catch (err) {
-        console.error('Failed to check group ownership:', err);
+        console.error('Failed to check group role:', err);
       } finally {
         setCheckingAccess(false);
       }
     };
-    checkAccess();
+    checkRole();
   }, [groupId]);
 
   const handleSubmit = async (e) => {
@@ -91,39 +92,22 @@ const AddContribution = () => {
 
   if (checkingAccess) return null;
 
-  if (!isOwner) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 font-sans">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-gray-900">Owner only</h1>
-          <p className="mt-2 text-sm text-gray-500">Only the group owner can add contributions.</p>
-          <button
-            onClick={() => navigate('/team')}
-            className="mt-6 rounded-xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            Back to Team Budget
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen items-start justify-center bg-gray-50 px-4 py-16 font-sans">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gray-900">Add a contribution</h1>
-        <p className="mt-1 text-sm text-gray-500">
+    <div className="flex min-h-screen items-start justify-center bg-brand-white px-4 py-16 font-causten">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg px-6 py-6">
+        <h1 className="text-2xl font-causten font-extrabold text-brand-dark-violet">Add a contribution</h1>
+        <p className="mt-1 text-sm text-brand-dark-violet/60">
           Record what you're putting into this group's pool — e.g. "Food $100" or "Coca $30".
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           {isOwner && members.length > 0 && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Contributor</label>
+              <label className="block text-xs font-causten font-bold uppercase tracking-wider text-brand-dark-violet/80">Contributor</label>
               <select
                 value={contributorId}
                 onChange={(e) => setContributorId(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-400"
+                className="mt-2 w-full rounded-xl bg-brand-dark-violet/5 px-4 py-3 text-sm text-brand-dark-violet placeholder-brand-dark-violet/40 outline-none focus:ring-2 focus:ring-brand-dark-violet/15 transition-shadow"
               >
                 {members.map((m) => (
                   <option key={m.userId} value={m.userId}>
@@ -135,9 +119,9 @@ const AddContribution = () => {
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Amount</label>
-            <div className="mt-2 flex items-center rounded-xl border border-gray-200 bg-white px-4 py-3 focus-within:border-indigo-400">
-              <span className="text-sm text-gray-400">$</span>
+            <label className="block text-xs font-causten font-bold uppercase tracking-wider text-brand-dark-violet/80">Amount</label>
+            <div className="mt-2 flex items-center rounded-xl bg-brand-dark-violet/5 px-4 py-3 focus-within:ring-2 focus-within:ring-brand-dark-violet/15 transition-shadow">
+              <span className="text-sm font-causten font-bold text-brand-dark-violet/60">$</span>
               <input
                 type="number"
                 min="0"
@@ -145,28 +129,28 @@ const AddContribution = () => {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="ml-2 w-full text-sm text-gray-900 outline-none"
+                className="ml-2 w-full text-sm text-brand-dark-violet placeholder-brand-dark-violet/40 outline-none bg-transparent"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Reason</label>
+            <label className="block text-xs font-causten font-bold uppercase tracking-wider text-brand-dark-violet/80">Reason</label>
             <input
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="e.g. Food, Coca, Flight deposit"
-              className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-400"
+              className="mt-2 w-full rounded-xl bg-brand-dark-violet/5 px-4 py-3 text-sm text-brand-dark-violet placeholder-brand-dark-violet/40 outline-none focus:ring-2 focus:ring-brand-dark-violet/15 transition-shadow"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Status</label>
+            <label className="block text-xs font-causten font-bold uppercase tracking-wider text-brand-dark-violet/80">Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-400"
+              className="mt-2 w-full rounded-xl bg-brand-dark-violet/5 px-4 py-3 text-sm text-brand-dark-violet placeholder-brand-dark-violet/40 outline-none focus:ring-2 focus:ring-brand-dark-violet/15 transition-shadow"
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option} value={option}>{option}</option>
@@ -174,20 +158,20 @@ const AddContribution = () => {
             </select>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-red-400 font-causten">{error}</p>}
 
           <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={() => navigate('/team')}
-              className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-causten font-bold text-brand-dark-violet/60 hover:bg-gray-50 active:scale-95 transition-all duration-150"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 rounded-xl bg-indigo-800 py-3 text-sm font-semibold text-white hover:bg-indigo-900 disabled:opacity-50"
+              className="flex-1 rounded-xl bg-brand-dark-violet py-3 text-sm font-causten font-bold text-white enabled:hover:bg-brand-base enabled:hover:-translate-y-0.5 enabled:hover:shadow-md active:scale-95 transition-all duration-150 disabled:opacity-50"
             >
               {submitting ? "Adding…" : "Add contribution"}
             </button>

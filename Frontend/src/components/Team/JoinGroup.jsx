@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { TbX } from "react-icons/tb";
 
 // Relative path so Vite's dev proxy (and the ngrok tunnel, which only
 // exposes the frontend) can forward this to the backend — see ngrok.yml.
@@ -9,14 +9,13 @@ const authHeader = () => ({
   Authorization: `Bearer ${localStorage.getItem('token')}`
 });
 
-const JoinGroup = () => {
-  const [searchParams] = useSearchParams();
-  // Lets a shared invite link (?token=...) pre-fill the field instead of
-  // making people copy-paste the token by hand.
-  const [token, setToken] = useState(searchParams.get('token') || "");
+// Bottom sheet for joining a group by invite token — same anatomy as the app's
+// other sheets. `initialToken` lets a shared link pre-fill the field; `onSuccess`
+// gets the joined group's id so the Team page can refetch and open it.
+const JoinGroup = ({ onClose, onSuccess, initialToken = "" }) => {
+  const [token, setToken] = useState(initialToken);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,7 +41,7 @@ const JoinGroup = () => {
         return;
       }
 
-      navigate('/team', { state: { newGroupId: data.id } });
+      onSuccess?.(data.id);
     } catch (err) {
       setError("Could not join group. Please try again.");
     } finally {
@@ -50,47 +49,57 @@ const JoinGroup = () => {
     }
   };
 
-  return (
-    <div className="flex min-h-screen items-start justify-center bg-gray-50 px-4 py-16 font-sans">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gray-900">Join a group</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Paste the invite token a group owner shared with you.
-        </p>
+  const dismiss = () => { if (!submitting) onClose(); };
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/30 z-55" onClick={dismiss} />
+      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-60 px-5 pt-5 pb-10 shadow-2xl animate-slide-up font-causten">
+        <div className="flex justify-between items-start mb-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Invite token</label>
+            <h2 className="text-xl font-causten font-bold text-brand-dark-violet">Join a group</h2>
+            <p className="mt-1 text-sm text-brand-dark-violet/60">
+              Paste the invite token a group owner shared with you.
+            </p>
+          </div>
+          <button onClick={dismiss} className="active:scale-90 transition-transform duration-150 shrink-0">
+            <TbX className="w-5 h-5 text-brand-dark-violet/60" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-xs font-causten font-bold uppercase tracking-wider text-brand-dark-violet/80">Invite token</label>
             <input
               type="text"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               placeholder="Paste invite token"
-              className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-400"
+              className="mt-2 w-full rounded-xl bg-brand-dark-violet/5 px-4 py-3 text-sm text-brand-dark-violet placeholder-brand-dark-violet/40 outline-none focus:ring-2 focus:ring-brand-dark-violet/15 transition-shadow"
             />
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-red-400 font-causten">{error}</p>}
 
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={() => navigate('/team')}
-              className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              onClick={dismiss}
+              className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-causten font-bold text-brand-dark-violet/60 hover:bg-gray-50 active:scale-95 transition-all duration-150"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 rounded-xl bg-indigo-800 py-3 text-sm font-semibold text-white hover:bg-indigo-900 disabled:opacity-50"
+              className="flex-1 rounded-xl bg-brand-dark-violet py-3 text-sm font-causten font-bold text-white enabled:hover:bg-brand-base enabled:hover:-translate-y-0.5 enabled:hover:shadow-md active:scale-95 transition-all duration-150 disabled:opacity-50"
             >
               {submitting ? "Joining…" : "Join group"}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </>
   );
 };
 

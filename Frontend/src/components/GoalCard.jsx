@@ -29,7 +29,7 @@ export default function GoalCard({ goal, onOpenModal, onDelete }) {
         <button
           onClick={() => onDelete(goal.goal_id)}
           aria-label={`Delete ${goal.goal_name}`}
-          className="text-brand-dark-violet/45 hover:text-red-400 transition-colors shrink-0 mt-1"
+          className="text-brand-dark-violet/45 hover:text-red-400 active:scale-90 transition-all duration-150 shrink-0 mt-1"
         >
           <TbX className="w-4 h-4" />
         </button>
@@ -68,7 +68,7 @@ export default function GoalCard({ goal, onOpenModal, onDelete }) {
           onClick={() => onOpenModal(goal, 'deduct')}
           className="flex-1 py-2 rounded-xl border border-brand-dark-violet/20 text-brand-dark-violet
                      text-xs font-causten font-bold flex items-center justify-center gap-1
-                     hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
+                     hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
         >
           <TbMinus className="w-3.5 h-3.5" /> Withdraw
         </button>
@@ -76,7 +76,7 @@ export default function GoalCard({ goal, onOpenModal, onDelete }) {
           onClick={() => onOpenModal(goal, 'add')}
           className="flex-1 py-2 rounded-xl bg-brand-dark-violet text-white
                      text-xs font-causten font-bold flex items-center justify-center gap-1
-                     hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
+                     hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
         >
           <TbPlus className="w-3.5 h-3.5" /> Add savings
         </button>

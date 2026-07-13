@@ -7,6 +7,8 @@ import CategoryManager from '../components/CategoryManager';
 import EditExpenseSheet from '../components/EditExpenseSheet';
 import PresetItem from '../components/PresetItem';
 import CategoryChips from '../components/CategoryChips';
+import SetupAlert from '../components/SetupAlert';
+import NotificationBell from '../components/NotificationBell';
 import { getCategoryIcon } from '../utils/categoryIcon';
 
 import { API } from '../utils/api';
@@ -55,6 +57,9 @@ const DailyLog = () => {
   const [editing, setEditing] = useState(null);
   const [dailyBudget, setDailyBudget] = useState(0);
   const [baseAllowance, setBaseAllowance] = useState(0);
+  // null until the budget loads — the setup banner only renders on a real 0,
+  // never during the loading flash
+  const [monthlyIncome, setMonthlyIncome] = useState(null);
   const [presets, setPresets] = useState([]);
   const [showPresetForm, setShowPresetForm] = useState(false);
   const [presetForm, setPresetForm] = useState({ category_id: '', amount: '', note: '' });
@@ -84,6 +89,7 @@ const DailyLog = () => {
       setExpenses(Array.isArray(logs) ? logs.map(mapLog) : []);
       setDailyBudget(parseFloat(budget?.daily_allowance) || 0);
       setBaseAllowance(parseFloat(budget?.base_allowance) || 0);
+      setMonthlyIncome(parseFloat(budget?.monthly_income) || 0);
       setPresets(Array.isArray(presetList) ? presetList.map(mapPreset) : []);
       setCategories(Array.isArray(cats) ? cats.map(mapCategory) : []);
     });
@@ -106,6 +112,7 @@ const DailyLog = () => {
       const budget = await res.json();
       setDailyBudget(parseFloat(budget?.daily_allowance) || 0);
       setBaseAllowance(parseFloat(budget?.base_allowance) || 0);
+      setMonthlyIncome(parseFloat(budget?.monthly_income) || 0);
     } catch { /* keep the numbers we have */ }
   };
 
@@ -253,15 +260,18 @@ const DailyLog = () => {
       {/* Header — transparent over the page's purple; the overspend warning
           lives on the hero box below, not up here */}
       <div className="relative px-5 pt-12 pb-0 md:rounded-3xl md:pt-10">
-        {/* Profile avatar — pinned top-right, same spot as on the Budget page */}
-        <button
-          onClick={() => navigate('/profile')}
-          className="absolute top-12 right-5 w-12 h-12 rounded-full bg-white/30 flex items-center justify-center shrink-0"
-        >
-          <span className="text-white font-causten font-extrabold text-lg">
-            {userName.charAt(0).toUpperCase()}
-          </span>
-        </button>
+        {/* Bell + profile avatar — pinned top-right, same spot as on the Budget page */}
+        <div className="absolute top-12 right-5 flex items-center gap-3">
+          <NotificationBell />
+          <button
+            onClick={() => navigate('/profile')}
+            className="w-12 h-12 rounded-full bg-white/30 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
+          >
+            <span className="text-white font-causten font-extrabold text-lg">
+              {userName.charAt(0).toUpperCase()}
+            </span>
+          </button>
+        </div>
 
         <div className="mb-4 pr-16">
           <p className="text-white/60 text-base font-causten">Today's</p>
@@ -270,6 +280,19 @@ const DailyLog = () => {
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
+
+        {/* No income yet — explain the $0.00 allowance and offer the fix.
+            Renders only on a confirmed 0 (not while loading), and disappears
+            on its own once an income exists. */}
+        {monthlyIncome === 0 && (
+          <div className="mb-3">
+            <SetupAlert
+              message="No daily allowance yet — set your monthly income first and it'll be calculated for you."
+              actionLabel="Set it"
+              onAction={() => navigate('/expense')}
+            />
+          </div>
+        )}
 
         {/* Hero card: Remaining Today as a slim status strip (label left,
             amount right, drain bar underneath), then the quick-add form as
@@ -366,7 +389,7 @@ const DailyLog = () => {
           </p>
           <button
             onClick={() => setShowPresetForm(true)}
-            className="flex items-center gap-1 text-white/80 text-sm font-causten font-bold hover:text-white transition-colors"
+            className="flex items-center gap-1 text-white/80 text-sm font-causten font-bold hover:text-white active:scale-95 transition-all duration-150"
           >
             <TbPlus className="w-4 h-4" /> ADD PRESET
           </button>
@@ -477,7 +500,7 @@ const DailyLog = () => {
               <button
                 key={e.id}
                 onClick={() => setEditing(e)}
-                className="w-full bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-2.5 text-left hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet"
+                className="w-full bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-2.5 text-left hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet"
               >
                 <CategoryIcon className="w-4.5 h-4.5 shrink-0" style={{ color: e.categoryColor }} />
                 <p className="text-brand-dark-violet text-sm font-semibold truncate">

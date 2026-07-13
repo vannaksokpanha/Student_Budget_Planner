@@ -10,7 +10,7 @@ const CategoryChips = ({ categories, value, onChange, onRequestNew, dark = false
   const selected = String(value || '');
   // Transparent border by default so the hover outline doesn't shift layout
   const base =
-    'shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-causten font-bold transition-colors border border-transparent';
+    'shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-causten font-bold transition-all duration-150 border border-transparent active:scale-95';
 
   // The catch-all "Other" always sits at the end of the row
   const ordered = [

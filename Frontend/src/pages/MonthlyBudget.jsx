@@ -5,6 +5,8 @@ import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
 import ExpenseListItem from '../components/ExpenseListItem';
 import EditExpenseSheet from '../components/EditExpenseSheet';
+import SetupAlert from '../components/SetupAlert';
+import NotificationBell from '../components/NotificationBell';
 
 import { API } from '../utils/api';
 
@@ -78,7 +80,7 @@ const BudgetSection = ({
           <button
             onClick={() => setOpen(v => !v)}
             aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
-            className="text-brand-dark-violet/60 hover:text-brand-dark-violet transition-colors"
+            className="text-brand-dark-violet/60 hover:text-brand-dark-violet active:scale-90 transition-all duration-150"
           >
             <TbChevronDown className={`w-5 h-5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
           </button>
@@ -133,8 +135,14 @@ const MonthlyBudget = () => {
 
   // The raw monthly budget value the user sets (string to allow empty input)
   const [budget, setBudget] = useState('');
+  // Last value confirmed by the server — invalid input snaps back to this
+  // instead of lingering in the field looking like it saved
+  const [savedBudget, setSavedBudget] = useState('');
   const [editingBudget, setEditingBudget] = useState(false);
   const [budgetSaved, setBudgetSaved] = useState(false);
+  // True once the initial fetch lands — the setup banner only renders on a
+  // confirmed missing income, never during the loading flash
+  const [budgetLoaded, setBudgetLoaded] = useState(false);
 
   // Calculated by the backend — frontend only displays this, never computes it
   const [daysRemaining, setDaysRemaining] = useState(0);
@@ -174,8 +182,12 @@ const MonthlyBudget = () => {
       fetch(`${API}/categories`, { headers }).then(r => r.json())
     ]).then(([data, exps, cats]) => {
       // Budget summary — values pre-calculated by the backend
-      if (data?.monthly_income) setBudget(String(data.monthly_income));
+      if (data?.monthly_income) {
+        setBudget(String(data.monthly_income));
+        setSavedBudget(String(data.monthly_income));
+      }
       setDaysRemaining(data?.days_remaining || 0);
+      setBudgetLoaded(true);
 
       // Expenses list
       setExpenses(Array.isArray(exps) ? exps.map(mapExpense) : []);
@@ -191,7 +203,10 @@ const MonthlyBudget = () => {
   // days_remaining and returns it
   const handleSaveBudget = async () => {
     const val = parseFloat(budget);
-    if (!budget || isNaN(val) || val <= 0) {
+    // 0 is a valid income ("not set / clear it") — only empty, non-numeric,
+    // and negative input is rejected, snapping back to the last saved value
+    if (budget === '' || isNaN(val) || val < 0) {
+      setBudget(savedBudget);
       setEditingBudget(false);
       return;
     }
@@ -206,6 +221,7 @@ const MonthlyBudget = () => {
 
       // Update derived values from the backend response
       setBudget(String(data.monthly_income));
+      setSavedBudget(String(data.monthly_income));
       setDaysRemaining(data.days_remaining || 0);
 
       setBudgetSaved(true);
@@ -372,15 +388,18 @@ const MonthlyBudget = () => {
         className="relative px-5 pt-12 pb-10 min-h-45 bg-brand-base"
         style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
       >
-        {/* Profile avatar */}
-        <button
-          onClick={() => navigate('/profile')}
-          className="absolute top-12 right-5 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
-        >
-          <span className="text-white font-causten font-bold text-base">
-            {userName.charAt(0).toUpperCase()}
-          </span>
-        </button>
+        {/* Bell + profile avatar */}
+        <div className="absolute top-12 right-5 flex items-center gap-3">
+          <NotificationBell />
+          <button
+            onClick={() => navigate('/profile')}
+            className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
+          >
+            <span className="text-white font-causten font-bold text-base">
+              {userName.charAt(0).toUpperCase()}
+            </span>
+          </button>
+        </div>
 
         {/* Page title */}
         <div className="mb-3 pr-16">
@@ -398,7 +417,7 @@ const MonthlyBudget = () => {
                 <p className="text-white/60 text-[10px] font-causten font-bold uppercase tracking-widest">Monthly Income</p>
                 {budgetSaved && <span className="text-emerald-300 text-xs font-causten font-bold">✓</span>}
                 {!editingBudget && (
-                  <button onClick={() => setEditingBudget(true)} className="text-white/60 hover:text-white transition-colors">
+                  <button onClick={() => setEditingBudget(true)} className="text-white/60 hover:text-white active:scale-90 transition-all duration-150">
                     <TbPencil className="w-3 h-3" />
                   </button>
                 )}
@@ -466,6 +485,15 @@ const MonthlyBudget = () => {
       {/* ── Content: summary strip + the two budget sections ───────────────── */}
       <div className="relative z-10 -mt-6 bg-brand-white rounded-t-3xl px-4 pt-5 space-y-4">
 
+        {/* No income yet — everything on this page derives from it */}
+        {budgetLoaded && monthlyIncome === 0 && !editingBudget && (
+          <SetupAlert
+            message="Start by setting your monthly income — allowance and budget tracking switch on from there."
+            actionLabel="Set it"
+            onAction={() => { setEditingBudget(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          />
+        )}
+
         {/* Today's date — month carries the emphasis, day + year trail after */}
         <div className="flex items-center gap-2.5 px-1">
           <div className="bg-brand-light-pink rounded-full p-2 shrink-0">
@@ -505,14 +533,14 @@ const MonthlyBudget = () => {
           >
             <div className="flex justify-between items-center mb-3">
               <p className="text-sm font-causten font-bold text-white uppercase tracking-widest">Add an expense</p>
-              <button onClick={() => setAddOpen(false)} className="text-sm font-causten font-bold text-white/80 hover:text-white transition-colors">
+              <button onClick={() => setAddOpen(false)} className="text-sm font-causten font-bold text-white/80 hover:text-white active:scale-95 transition-all duration-150">
                 Cancel
               </button>
             </div>
             <div className="flex bg-white/10 rounded-xl p-1 mb-4">
               <button
                 onClick={() => setAddType('bill')}
-                className={`flex-1 py-2 rounded-lg text-sm font-causten font-bold transition-colors ${
+                className={`flex-1 py-2 rounded-lg text-sm font-causten font-bold active:scale-95 transition-all duration-150 ${
                   addType === 'bill' ? 'bg-white text-brand-dark-violet shadow' : 'text-white/50'
                 }`}
               >
@@ -520,7 +548,7 @@ const MonthlyBudget = () => {
               </button>
               <button
                 onClick={() => setAddType('planned')}
-                className={`flex-1 py-2 rounded-lg text-sm font-causten font-bold transition-colors ${
+                className={`flex-1 py-2 rounded-lg text-sm font-causten font-bold active:scale-95 transition-all duration-150 ${
                   addType === 'planned' ? 'bg-white text-brand-dark-violet shadow' : 'text-white/50'
                 }`}
               >
@@ -552,7 +580,7 @@ const MonthlyBudget = () => {
           headerAction={
             <button
               onClick={handleRestoreBills}
-              className="flex items-center gap-1 text-xs font-causten font-bold text-brand-dark-violet shrink-0 hover:text-brand-base transition-colors"
+              className="flex items-center gap-1 text-xs font-causten font-bold text-brand-dark-violet shrink-0 hover:text-brand-base active:scale-95 transition-all duration-150"
             >
               <TbArrowBackUp className="w-3.5 h-3.5" />
               Reuse last month's

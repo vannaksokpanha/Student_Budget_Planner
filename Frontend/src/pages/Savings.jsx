@@ -2,12 +2,23 @@ import { useEffect, useState } from "react";
 import { API } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import GoalCard from "../components/GoalCard";
+import NotificationBell from '../components/NotificationBell';
 import { TbBeach, TbGlassFull, TbDeviceLaptop, TbDeviceMobile, TbFirstAidKit, TbX } from 'react-icons/tb';
 import { LiaPiggyBankSolid } from 'react-icons/lia';
 
+// Local JWT expiry check — same synchronous guard the other pages use, so the
+// page paints immediately instead of blanking on an async round-trip
+const isTokenValid = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+};
+
 const Savings = () => {
-  const [ready, setReady] = useState();
-  const [error, setError] = useState(null);
+  const [loaded, setLoaded] = useState(false);
   const [goals, setGoals] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -23,56 +34,20 @@ const Savings = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem('userName') || 'there';
 
-  // EFFECT 1: Auth Guard
+  // Synchronous auth guard, then load goals. Renders the page right away so the
+  // header paints without a white flash; `loaded` gates only the content area.
   useEffect(() => {
-    const verify = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        return navigate("/login", { replace: true });
-      }
-      try {
-        const res = await fetch(`${API}/home/home`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          cache: 'no-store'
-        })
-        if (!res.ok) {
-          setError('Unauthorized');
-          return;
-        }
-        setReady(true)
-      }
-      catch {
-        navigate("/login", { replace: true })
-      }
+    const token = localStorage.getItem('token');
+    if (!token || !isTokenValid(token)) {
+      navigate('/login', { replace: true });
+      return;
     }
-    verify();
-  }, [navigate])
-
-  // EFFECT 2: Data Retrieval Guard (Only runs AFTER the user passes Effect 1 cleanly)
-  useEffect(() => {
-    if (!ready) return;
-
-    const fetchGoalsData = async () => {
-      const token = localStorage.getItem('token');
-      try {
-        const goalsRes = await fetch(`${API}/savings`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (goalsRes.ok) {
-          const data = await goalsRes.json();
-          setGoals(data);
-        } else {
-          console.error("Backend endpoint returned error status:", goalsRes.status);
-        }
-      } catch (err) {
-        console.error("Database server connection failed:", err);
-      }
-    };
-    fetchGoalsData();
-  }, [ready]);
+    fetch(`${API}/savings`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : []))
+      .then(data => setGoals(Array.isArray(data) ? data : []))
+      .catch(err => console.error('Failed to load savings goals:', err))
+      .finally(() => setLoaded(true));
+  }, [navigate]);
 
   const suggestions = [
     { label: 'Fun Vacation',    Icon: TbBeach },
@@ -214,24 +189,14 @@ const Savings = () => {
     }
   };
 
-  // Hero spotlight: the unfinished goal closest to completion — the next best win
-  const closestGoal = goals
-    .filter(g => Number(g.target_amount) > 0 && Number(g.current_amount) < Number(g.target_amount))
-    .reduce((best, g) => {
-      const pct = Number(g.current_amount) / Number(g.target_amount);
-      return !best || pct > best.pct ? { goal: g, pct } : best;
-    }, null);
+  // Hero headline: everything saved across all goals combined
+  const totalSaved = goals.reduce((sum, g) => sum + Number(g.current_amount), 0);
+  const totalTarget = goals.reduce((sum, g) => sum + Number(g.target_amount), 0);
 
-  // What the hero's progress bar tracks: the spotlighted goal's progress,
-  // full when everything's reached, empty when there are no goals yet
-  const heroPct = closestGoal ? closestGoal.pct * 100 : goals.length > 0 ? 100 : 0;
-
-  if (error) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1 className="text-2xl font-bold">{error}</h1>
-    </div>
-  );
-  if (!ready) return null;
+  // What the hero's progress bar tracks: total saved against the summed
+  // targets, capped at 100%, empty when there are no goals yet
+  const heroPct =
+    goals.length === 0 ? 0 : totalTarget > 0 ? Math.min((totalSaved / totalTarget) * 100, 100) : 100;
 
   return (
     <div className="md:hidden min-h-screen bg-brand-white pb-24">
@@ -243,10 +208,7 @@ const Savings = () => {
         style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
       >
         <div className="absolute top-12 right-5 flex items-center gap-3">
-          <div className="h-12 flex flex-col justify-center text-right">
-            <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Active Goals</p>
-            <p className="text-white text-xl font-causten font-extrabold leading-none">{goals.length}</p>
-          </div>
+          <NotificationBell />
           <button
             onClick={() => navigate('/profile')}
             className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
@@ -257,36 +219,33 @@ const Savings = () => {
           </button>
         </div>
 
-        <div className="mb-6 pr-40">
+        <div className="mb-3 pr-40">
           <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
           <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Savings</h1>
         </div>
 
         {/* Next-goal hero — spotlights the goal closest to completion, its
-            progress bar filling along the bottom edge */}
-        <div className="relative bg-white/15 rounded-2xl px-4 pt-9 pb-11 text-center">
-          {closestGoal ? (
+            progress bar filling along the bottom edge. min-h + centering keeps
+            the box the same height across all states (goals vs empty). */}
+        <div className="relative bg-white/15 rounded-2xl px-4 pt-6 pb-9 text-center flex flex-col justify-center min-h-44">
+          {!loaded ? null : goals.length > 0 ? (
             <>
-              <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2 truncate px-2">
-                {closestGoal.goal.goal_name}
+              <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">
+                Total saved · {goals.length} {goals.length === 1 ? 'goal' : 'goals'}
               </p>
-              <p className="text-white text-6xl font-causten font-extrabold tracking-tight">
-                ${(Number(closestGoal.goal.target_amount) - Number(closestGoal.goal.current_amount)).toFixed(2)}
+              <p className="text-white text-5xl font-causten font-extrabold tracking-tight">
+                ${totalSaved.toFixed(2)}
               </p>
-              <p className="text-white/60 text-sm font-causten mt-2">
-                to go · {Math.round(closestGoal.pct * 100)}% saved
-              </p>
-            </>
-          ) : goals.length > 0 ? (
-            <>
-              <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">All goals reached</p>
-              <p className="text-white text-6xl font-causten font-extrabold tracking-tight">🎉</p>
-              <p className="text-white/60 text-sm font-causten mt-2">Time to dream up the next one</p>
+              {totalTarget > 0 && (
+                <p className="text-white/60 text-sm font-causten mt-2">
+                  of ${totalTarget.toFixed(2)} · {Math.round((totalSaved / totalTarget) * 100)}%
+                </p>
+              )}
             </>
           ) : (
             <>
               <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">No goals yet</p>
-              <p className="text-white text-4xl font-causten font-extrabold tracking-tight">Save for something</p>
+              <p className="text-white text-3xl font-causten font-extrabold tracking-tight">Save for something</p>
               <p className="text-white/60 text-sm font-causten mt-2">Tap + to create your first goal</p>
             </>
           )}
@@ -307,7 +266,9 @@ const Savings = () => {
         <p className="font-causten font-bold text-brand-dark-violet text-xl mb-2">
           People often save for
         </p>
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {/* pt/px make room inside the scroll clip for the 4px hover outline + lift;
+            negative margins cancel them out so the strip still lines up */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pt-2 -mt-2 px-2 -mx-2 pb-2">
           {suggestions.map((s) => (
             <button
               key={s.label}
@@ -332,15 +293,23 @@ const Savings = () => {
           )}
         </div>
 
+        {/* Full-width add bar — same anatomy as Monthly Budget's "+ Add an expense" */}
+        <button
+          onClick={openModal}
+          className="w-full mb-4 py-4 bg-brand-dark-violet text-white rounded-2xl shadow-lg font-causten font-bold text-sm hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-xl transition-all duration-150 active:scale-95"
+        >
+          + Add a goal
+        </button>
+
         <div className="flex flex-col gap-4">
-          {goals.length === 0 ? (
+          {!loaded ? null : goals.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-4">
               <div className="bg-brand-light-pink rounded-full p-6">
                 <LiaPiggyBankSolid className="w-16 h-16 text-brand-dark-violet" />
               </div>
               <div className="text-center">
                 <p className="text-brand-dark-violet font-causten font-bold text-base">No goals yet</p>
-                <p className="text-brand-dark-violet/45 text-xs mt-1">Tap + to start saving toward something</p>
+                <p className="text-brand-dark-violet/45 text-xs mt-1">Add a goal to start saving toward something</p>
               </div>
             </div>
           ) : (
@@ -358,18 +327,6 @@ const Savings = () => {
       </section>
 
       </div>
-
-      {/* Floating + Button centered above NavBar */}
-      <button
-        onClick={openModal}
-        className="fixed bottom-18 left-1/2 -translate-x-1/2 z-50
-                   w-14 h-14 rounded-full bg-brand-dark-violet text-white text-3xl
-                   flex items-center justify-center shadow-xl
-                   hover:scale-110 active:scale-95 transition-transform duration-200"
-        aria-label="Add new savings goal"
-      >
-        +
-      </button>
 
       {/* Add / Withdraw Savings sheet — same anatomy as the Edit Expense and
           Add Preset sheets: white sheet, title + × row, underline amount
@@ -440,7 +397,7 @@ const Savings = () => {
             <button
               onClick={handleUpdateGoal}
               disabled={updating || !updateAmount}
-              className="w-full mt-4 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 disabled:opacity-20 flex items-center justify-center gap-2"
+              className="w-full mt-4 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150 disabled:opacity-20 flex items-center justify-center gap-2"
             >
               {updating ? (
                 <>
@@ -464,13 +421,13 @@ const Savings = () => {
             <div className="flex gap-3 mt-2">
               <button
                 onClick={() => setGoalToDelete(null)}
-                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-brand-dark-violet/75 font-causten font-bold hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
+                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-brand-dark-violet/75 font-causten font-bold hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteGoal}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-causten font-bold hover:bg-red-600 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150"
+                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-causten font-bold hover:bg-red-600 hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
               >
                 Delete
               </button>
@@ -574,7 +531,7 @@ const Savings = () => {
                   onClick={closeModal}
                   disabled={submitting}
                   className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-brand-dark-violet/75
-                             font-causten font-bold hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 disabled:opacity-50"
+                             font-causten font-bold hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -582,7 +539,7 @@ const Savings = () => {
                   onClick={handleAddGoal}
                   disabled={submitting}
                   className="flex-1 py-3 rounded-xl bg-brand-dark-violet text-white
-                             font-causten font-bold hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md transition-all duration-150
+                             font-causten font-bold hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150
                              disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? (

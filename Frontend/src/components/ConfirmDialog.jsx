@@ -21,13 +21,13 @@ const ConfirmDialog = ({
       <div className="flex gap-3 mt-6">
         <button
           onClick={onCancel}
-          className="flex-1 py-3 rounded-xl border border-gray-200 text-brand-dark-violet/60 font-causten font-bold text-sm"
+          className="flex-1 py-3 rounded-xl border border-gray-200 text-brand-dark-violet/60 font-causten font-bold text-sm hover:bg-gray-50 active:scale-95 transition-all duration-150"
         >
           {cancelLabel}
         </button>
         <button
           onClick={onConfirm}
-          className="flex-1 py-3 rounded-xl bg-red-400 text-white font-causten font-bold text-sm"
+          className="flex-1 py-3 rounded-xl bg-red-400 text-white font-causten font-bold text-sm hover:bg-red-500 active:scale-95 transition-all duration-150"
         >
           {confirmLabel}
         </button>

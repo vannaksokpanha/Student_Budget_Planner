@@ -115,7 +115,7 @@ const Login = () => {
                   name='bbb'
                   type='submit'
                   disabled={loading}
-                  className='w-full py-3 bg-white/20 hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md rounded-lg font-semibold text-white transition-all duration-150'
+                  className='w-full py-3 bg-white/20 hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 rounded-lg font-semibold text-white transition-all duration-150'
                 >
                   {loading ? 'Signing in...' : 'Sign in'}
                 </button>
@@ -127,7 +127,7 @@ const Login = () => {
                 </div>
                 <button
                   type='button'
-                  className='w-full py-3 bg-brand-light-pink hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md rounded-lg font-semibold text-brand-dark-violet hover:text-white transition-all duration-150'
+                  className='w-full py-3 bg-brand-light-pink hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 rounded-lg font-semibold text-brand-dark-violet hover:text-white transition-all duration-150'
                 >
                   <span className='text-lg'>CONTINUE WITH GOOGLE</span>
                 </button>
@@ -178,7 +178,7 @@ const Login = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full py-3 text-white hover:text-white hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md bg-white/20 rounded-lg font-causten font-bold transition-all duration-150'
+              className='w-full py-3 text-white hover:text-white hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 bg-white/20 rounded-lg font-causten font-bold transition-all duration-150'
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -191,7 +191,7 @@ const Login = () => {
 
             <button
               type='button'
-              className='w-full py-3 text-brand-dark-violet hover:text-white bg-brand-light-pink hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md rounded-lg font-semibold transition-all duration-150'
+              className='w-full py-3 text-brand-dark-violet hover:text-white bg-brand-light-pink hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 rounded-lg font-semibold transition-all duration-150'
             >
               Continue with Google
             </button>

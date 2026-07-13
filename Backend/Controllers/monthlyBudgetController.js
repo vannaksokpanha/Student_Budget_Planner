@@ -56,7 +56,11 @@ const getBudget = async (req, res) => {
 // the updated daily_allowance, available, and days_remaining
 const upsertBudget = async (req, res) => {
   try {
-    const { monthly_income } = req.body;
+    // 0 is valid (income not set / cleared); negative or non-numeric is not
+    const monthly_income = parseFloat(req.body.monthly_income);
+    if (isNaN(monthly_income) || monthly_income < 0) {
+      return res.status(400).json({ message: 'monthly_income must be a number of 0 or more' });
+    }
     const userId = req.user.id;
 
     let budget = await Budget.findOne({ where: { user_id: userId } });

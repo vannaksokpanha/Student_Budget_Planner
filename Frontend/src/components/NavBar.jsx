@@ -37,7 +37,7 @@ const NavBar = ({isOpen,setIsOpen}) => {
                     {/* Toggle button */}
                     <button
                         onClick={() => setIsOpen(!isOpen)}
-                        className="flex items-center p-3 rounded-lg text-gray-500 hover:text-brand-dark-violet hover:bg-gray-50 transition shrink-0"
+                        className="flex items-center p-3 rounded-lg text-gray-500 hover:text-brand-dark-violet hover:bg-gray-50 active:scale-90 transition shrink-0"
                     >
                         {isOpen ? <TbChevronsLeft className="w-5 h-5" /> : <TbChevronsRight className="w-5 h-5" />}
                     </button>
@@ -80,7 +80,7 @@ const NavBar = ({isOpen,setIsOpen}) => {
                                 onClick={ ()=> navigate(item.path)}
                                 key={item.name}
                                 title={!isOpen ? item.name : undefined}
-                                className={`group flex items-center gap-3 w-full py-4 rounded-lg font-semibold transition duration-200 ${
+                                className={`group flex items-center gap-3 w-full py-4 rounded-lg font-semibold active:scale-[0.97] transition duration-200 ${
                                 isOpen ? 'px-5' : 'px-0 justify-center'
                                 } ${
                                 active
@@ -102,7 +102,7 @@ const NavBar = ({isOpen,setIsOpen}) => {
 
                     <button
                         onClick={handleLogout}
-                        className={`group flex items-center py-4 font-semibold text-gray-500 gap-3 w-full rounded-lg hover:text-brand-dark-violet hover:bg-gray-50 transition duration-200 whitespace-nowrap overflow-hidden ${
+                        className={`group flex items-center py-4 font-semibold text-gray-500 gap-3 w-full rounded-lg hover:text-brand-dark-violet hover:bg-gray-50 active:scale-[0.97] transition duration-200 whitespace-nowrap overflow-hidden ${
                             isOpen ? 'px-5' : 'px-0 justify-center'
                         }`}
                     >
@@ -121,7 +121,7 @@ const NavBar = ({isOpen,setIsOpen}) => {
                             onClick={() => navigate(item.path)}
                             className={`
                                 group flex flex-col items-center justify-center
-                                flex-1 py-1.5 transition duration-200 transform
+                                flex-1 py-1.5 active:scale-90 transition duration-200 transform
 
                                 ${
                                     location.pathname === item.path

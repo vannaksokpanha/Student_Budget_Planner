@@ -11,19 +11,19 @@ const TABS = ["Savings Plan", "Members"];
 const MemberRow = ({ member, canManage, onRemove }) => (
   <div className="flex items-center justify-between gap-3 border-b border-gray-50 px-6 py-4 last:border-b-0">
     <div className="flex items-center gap-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-600">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-light-pink text-sm font-causten font-bold text-brand-dark-violet">
         {member.name?.charAt(0)?.toUpperCase() || "?"}
       </div>
       <div>
-        <p className="text-sm font-semibold text-gray-900">{member.name}</p>
-        <p className="text-xs capitalize text-gray-400">{member.role}</p>
+        <p className="text-sm font-causten font-bold text-brand-dark-violet">{member.name}</p>
+        <p className="text-xs capitalize text-brand-dark-violet/45">{member.role}</p>
       </div>
     </div>
 
     {canManage && member.role !== 'owner' && (
       <button
         onClick={() => onRemove(member.userId)}
-        className="flex items-center gap-1.5 text-sm font-medium text-red-500 hover:text-red-600"
+        className="flex items-center gap-1.5 text-sm font-causten font-bold text-red-400 hover:text-red-500 active:scale-95 transition-all duration-150"
       >
         <UserMinus size={16} />
         Remove
@@ -33,9 +33,9 @@ const MemberRow = ({ member, canManage, onRemove }) => (
 );
 
 const MembersPanel = ({ members, isOwner, onRemoveMember }) => (
-  <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
+  <div className="overflow-hidden rounded-2xl shadow-lg bg-white">
     {members.length === 0 && (
-      <p className="px-6 py-6 text-center text-sm text-gray-400">No members yet.</p>
+      <p className="px-6 py-6 text-center text-sm text-brand-dark-violet/45">No members yet.</p>
     )}
     {members.map((member) => (
       <MemberRow
@@ -54,12 +54,12 @@ const MembersPanel = ({ members, isOwner, onRemoveMember }) => (
 // that server-side too, so this is just about the button's wording here).
 const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner, onDeleteContribution }) => {
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+    <div className="mt-6 overflow-hidden rounded-2xl shadow-lg bg-white">
       <div className="flex items-center justify-between px-6 py-5">
-        <h2 className="text-lg font-bold text-gray-900">Expense Breakdown</h2>
+        <h2 className="text-xl font-causten font-bold text-brand-dark-violet">Expense Breakdown</h2>
         <button
           onClick={onViewHistory}
-          className="text-sm font-semibold text-indigo-700 hover:text-indigo-800"
+          className="text-sm font-causten font-bold text-brand-dark-violet hover:text-brand-base active:scale-95 transition-all duration-150"
         >
           View All History
         </button>
@@ -68,7 +68,7 @@ const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner
       {/* Table only fits comfortably from md up — phones get a stacked card list below. */}
       <table className="hidden w-full text-left md:table">
         <thead>
-          <tr className="border-y border-gray-100 bg-gray-50/60 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <tr className="border-y border-gray-100 bg-brand-dark-violet/5 text-xs font-causten font-bold uppercase tracking-widest text-brand-dark-violet/60">
             <th className="px-6 py-3">Contributor</th>
             <th className="px-6 py-3">Reason</th>
             <th className="px-6 py-3">Amount</th>
@@ -79,7 +79,7 @@ const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner
         <tbody>
           {expenses.length === 0 && (
             <tr>
-              <td colSpan={5} className="px-6 py-6 text-center text-sm text-gray-400">
+              <td colSpan={5} className="px-6 py-6 text-center text-sm text-brand-dark-violet/45">
                 No expenses yet.
               </td>
             </tr>
@@ -88,17 +88,17 @@ const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner
             <tr key={row.id} className="border-b border-gray-50">
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-600">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-light-pink text-sm font-causten font-bold text-brand-dark-violet">
                     {row.name?.charAt(0)?.toUpperCase() || "?"}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{row.name}</p>
-                    <p className="text-xs text-gray-400">{row.date}</p>
+                    <p className="text-sm font-causten font-bold text-brand-dark-violet">{row.name}</p>
+                    <p className="text-xs text-brand-dark-violet/45">{row.date}</p>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 text-sm text-gray-700">{row.reason}</td>
-              <td className="px-6 py-4 text-sm font-bold text-gray-900">{row.amount}</td>
+              <td className="px-6 py-4 text-sm text-brand-dark-violet/75">{row.reason}</td>
+              <td className="px-6 py-4 text-sm font-causten font-extrabold text-brand-dark-violet">{row.amount}</td>
               <td className="px-6 py-4">
                 <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${row.status === 'Pending' ? 'text-amber-600' : 'text-emerald-600'}`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${row.status === 'Pending' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
@@ -109,7 +109,7 @@ const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner
                 <div className="flex items-center justify-end gap-4">
                   <button
                     onClick={() => onSetExpense(row.id)}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 hover:text-indigo-800"
+                    className="inline-flex items-center gap-1.5 text-sm font-causten font-bold text-brand-dark-violet hover:text-brand-base active:scale-95 transition-all duration-150"
                   >
                     <ReceiptText size={16} />
                     {row.contributorId === myUserId ? "Set Expense" : "View"}
@@ -117,7 +117,7 @@ const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner
                   {isOwner && (
                     <button
                       onClick={() => onDeleteContribution(row.id)}
-                      className="text-gray-400 hover:text-red-500"
+                      className="text-brand-dark-violet/40 hover:text-red-400 active:scale-90 transition-all duration-150"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -131,24 +131,24 @@ const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner
 
       <div className="divide-y divide-gray-50 md:hidden">
         {expenses.length === 0 && (
-          <div className="px-6 py-6 text-center text-sm text-gray-400">No expenses yet.</div>
+          <div className="px-6 py-6 text-center text-sm text-brand-dark-violet/45">No expenses yet.</div>
         )}
         {expenses.map((row) => (
           <div key={row.id} className="px-6 py-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-600">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-light-pink text-sm font-causten font-bold text-brand-dark-violet">
                   {row.name?.charAt(0)?.toUpperCase() || "?"}
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-900">{row.name}</p>
-                  <p className="text-xs text-gray-400">{row.date}</p>
+                  <p className="truncate text-sm font-causten font-bold text-brand-dark-violet">{row.name}</p>
+                  <p className="text-xs text-brand-dark-violet/45">{row.date}</p>
                 </div>
               </div>
-              <p className="shrink-0 text-sm font-bold text-gray-900">{row.amount}</p>
+              <p className="shrink-0 text-sm font-causten font-extrabold text-brand-dark-violet">{row.amount}</p>
             </div>
 
-            <p className="mt-2 text-sm text-gray-700">{row.reason}</p>
+            <p className="mt-2 text-sm text-brand-dark-violet/75">{row.reason}</p>
 
             <div className="mt-2 flex items-center justify-between gap-2">
               <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${row.status === 'Pending' ? 'text-amber-600' : 'text-emerald-600'}`}>
@@ -159,7 +159,7 @@ const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => onSetExpense(row.id)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 hover:text-indigo-800"
+                  className="inline-flex items-center gap-1.5 text-xs font-causten font-bold text-brand-dark-violet hover:text-brand-base active:scale-95 transition-all duration-150"
                 >
                   <ReceiptText size={14} />
                   {row.contributorId === myUserId ? "Set Expense" : "View"}
@@ -167,7 +167,7 @@ const ExpenseTable = ({ expenses, onViewHistory, myUserId, onSetExpense, isOwner
                 {isOwner && (
                   <button
                     onClick={() => onDeleteContribution(row.id)}
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-brand-dark-violet/40 hover:text-red-400 active:scale-90 transition-all duration-150"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -202,7 +202,7 @@ const GroupDetails = ({
 
   if (!group) {
     return (
-      <div className="flex h-full items-center justify-center text-gray-400">
+      <div className="flex h-full items-center justify-center text-brand-dark-violet/45 font-causten">
         Select a group to see details
       </div>
     );
@@ -217,29 +217,29 @@ const GroupDetails = ({
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="flex lg:hidden items-center justify-center h-9 w-9 shrink-0 rounded-full text-gray-500 hover:bg-gray-100"
+            className="flex lg:hidden items-center justify-center h-9 w-9 shrink-0 rounded-full text-brand-dark-violet/60 hover:bg-brand-dark-violet/5 active:scale-90 transition-all duration-150"
           >
             <ArrowLeft size={20} />
           </button>
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-indigo-600 to-purple-800 text-white">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-brand-base to-brand-dark-violet text-white">
             <FlaskConical size={22} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-causten font-extrabold text-brand-dark-violet">
               {group.name}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-brand-dark-violet/45">
               Created by {group.createdBy || "—"}
               {group.createdAt ? ` • ${group.createdAt}` : ""}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-5 text-gray-400">
-          <button onClick={onShare} className="hover:text-gray-600">
+        <div className="flex items-center gap-5 text-brand-dark-violet/45">
+          <button onClick={onShare} className="hover:text-brand-dark-violet active:scale-90 transition-all duration-150">
             <Share2 size={20} />
           </button>
           <div className="relative">
-            <button onClick={() => setMenuOpen((open) => !open)} className="hover:text-gray-600">
+            <button onClick={() => setMenuOpen((open) => !open)} className="hover:text-brand-dark-violet active:scale-90 transition-all duration-150">
               <MoreVertical size={20} />
             </button>
 
@@ -251,21 +251,21 @@ const GroupDetails = ({
                   {group.myRole === 'owner' ? (
                     <button
                       onClick={() => { setMenuOpen(false); onDeleteGroup(); }}
-                      className="block w-full px-4 py-2.5 text-left text-sm font-medium text-red-500 hover:bg-gray-50"
+                      className="block w-full px-4 py-2.5 text-left text-sm font-causten font-bold text-red-400 hover:bg-brand-dark-violet/5"
                     >
                       Delete Group
                     </button>
                   ) : (
                     <button
                       onClick={() => { setMenuOpen(false); onLeaveGroup(); }}
-                      className="block w-full px-4 py-2.5 text-left text-sm font-medium text-red-500 hover:bg-gray-50"
+                      className="block w-full px-4 py-2.5 text-left text-sm font-causten font-bold text-red-400 hover:bg-brand-dark-violet/5"
                     >
                       Leave Group
                     </button>
                   )}
                   <button
                     onClick={() => setMenuOpen(false)}
-                    className="block w-full px-4 py-2.5 text-left text-sm font-medium text-gray-600 hover:bg-gray-50"
+                    className="block w-full px-4 py-2.5 text-left text-sm font-causten font-bold text-brand-dark-violet/60 hover:bg-brand-dark-violet/5"
                   >
                     Cancel
                   </button>
@@ -282,10 +282,10 @@ const GroupDetails = ({
           <button
             key={tab}
             onClick={() => onTabChange(tab)}
-            className={`-mb-px border-b-2 pb-3 pt-4 text-sm font-semibold transition-colors ${
+            className={`-mb-px border-b-2 pb-3 pt-4 text-sm font-causten font-bold active:scale-95 transition-all duration-150 ${
               activeTab === tab
-                ? "border-indigo-800 text-indigo-800"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "border-brand-dark-violet text-brand-dark-violet"
+                : "border-transparent text-brand-dark-violet/45 hover:text-brand-dark-violet"
             }`}
           >
             {tab}
@@ -297,25 +297,28 @@ const GroupDetails = ({
         {activeTab === "Savings Plan" && (
           <>
             {/* goal card */}
-            <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-950 via-purple-900 to-purple-700 p-8 text-white">
+            <div
+              className="relative overflow-hidden rounded-2xl bg-brand-base p-8 text-white shadow-lg"
+              style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
+            >
               <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/5" />
               <div className="absolute -right-20 top-16 h-40 w-40 rounded-full bg-white/5" />
 
-              <p className="relative text-sm text-indigo-200">Total Group Goal</p>
+              <p className="relative text-xs font-causten font-bold uppercase tracking-widest text-white/60">Total Group Goal</p>
               <div className="relative mt-2 flex items-baseline gap-3">
-                <span className="text-4xl font-bold tracking-tight">
+                <span className="text-4xl font-causten font-extrabold tracking-tight">
                   ${group.currentAmount?.toLocaleString() ?? "0"}
                 </span>
-                <span className="text-indigo-200">
+                <span className="text-white/60 font-causten">
                   of ${group.targetAmount?.toLocaleString() ?? "0"}
                 </span>
               </div>
 
               <div className="relative mt-8 flex items-center justify-between text-sm">
-                <span className="text-indigo-100">
+                <span className="text-white/80 font-causten">
                   {group.progress ?? 0}% Completed
                 </span>
-                <span className="text-indigo-100">
+                <span className="text-white/80 font-causten">
                   ${((group.targetAmount || 0) - (group.currentAmount || 0)).toLocaleString()} Left
                 </span>
               </div>
@@ -326,32 +329,30 @@ const GroupDetails = ({
                 />
               </div>
 
-              {group.myRole === 'owner' && (
-                <button
-                  onClick={onAddContribution}
-                  className="relative mt-8 flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-indigo-800 hover:bg-indigo-50 transition-colors"
-                >
-                  <Plus size={18} />
-                  Add Contribution
-                </button>
-              )}
+              <button
+                onClick={onAddContribution}
+                className="relative mt-8 flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-causten font-bold text-brand-dark-violet hover:bg-brand-light-pink hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
+              >
+                <Plus size={18} />
+                Add Contribution
+              </button>
             </div>
 
             {/* stat cards */}
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-gray-100 bg-indigo-50/40 p-5">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="rounded-2xl shadow-lg bg-white p-5">
+                <div className="flex items-center gap-2 text-xs font-causten font-bold uppercase tracking-widest text-brand-dark-violet/60">
                   <Users size={16} />
                   {group.contributorCount ?? 0} Contributors
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-gray-100 bg-indigo-50/40 p-5">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="rounded-2xl shadow-lg bg-white p-5">
+                <div className="flex items-center gap-2 text-xs font-causten font-bold uppercase tracking-widest text-brand-dark-violet/60">
                   <CreditCard size={16} />
                   Avg. Per Person
                 </div>
-                <div className="mt-4 text-2xl font-bold text-gray-900">
+                <div className="mt-4 text-2xl font-causten font-extrabold text-brand-dark-violet">
                   ${group.avgPerPerson?.toLocaleString() ?? "0"}
                 </div>
               </div>

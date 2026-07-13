@@ -34,7 +34,7 @@ const CategoryManager = ({ categories, onAdd, onDelete, onClose }) => {
       <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-70 px-5 pt-5 pb-10 shadow-2xl">
         <div className="flex justify-between items-center mb-5">
           <p className="font-causten font-bold text-brand-dark-violet text-lg">Categories</p>
-          <button onClick={onClose}>
+          <button onClick={onClose} className="active:scale-90 transition-transform duration-150">
             <TbX className="w-5 h-5 text-brand-dark-violet/60" />
           </button>
         </div>
@@ -47,7 +47,7 @@ const CategoryManager = ({ categories, onAdd, onDelete, onClose }) => {
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
                   <p className="text-brand-dark-violet text-sm">{c.name}</p>
                 </div>
-                <button onClick={() => onDelete(c.id)}>
+                <button onClick={() => onDelete(c.id)} className="active:scale-90 transition-transform duration-150">
                   <TbTrash className="w-4 h-4 text-brand-dark-violet/45 hover:text-red-400 transition-colors" />
                 </button>
               </div>
@@ -78,7 +78,7 @@ const CategoryManager = ({ categories, onAdd, onDelete, onClose }) => {
                   key={c}
                   onClick={() => setColor(c)}
                   style={{ backgroundColor: c }}
-                  className={`w-7 h-7 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-brand-dark-violet scale-110' : ''}`}
+                  className={`w-7 h-7 rounded-full active:scale-95 transition-transform duration-150 ${color === c ? 'ring-2 ring-offset-2 ring-brand-dark-violet scale-110' : ''}`}
                   aria-label={c}
                 />
               ))}
@@ -92,7 +92,7 @@ const CategoryManager = ({ categories, onAdd, onDelete, onClose }) => {
         <button
           onClick={handleAdd}
           disabled={!name.trim()}
-          className="w-full mt-4 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold disabled:opacity-20"
+          className="w-full mt-4 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold disabled:opacity-20 enabled:hover:bg-brand-base enabled:hover:-translate-y-0.5 enabled:hover:shadow-md active:scale-95 transition-all duration-150"
         >
           Add Category
         </button>

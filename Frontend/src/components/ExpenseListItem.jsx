@@ -11,7 +11,7 @@ import { getCategoryIcon } from "../utils/categoryIcon";
 // its own button so ticking doesn't open the edit sheet.
 const ExpenseListItem = ({ primaryText, categoryName, categoryColor, secondaryText, date, amount, paid = false, onTogglePaid, onClick }) => {
   return (
-    <div className="w-[calc(100%+2.5rem)] flex items-center gap-3 py-2.5 px-5 -mx-5 rounded-lg border-b border-gray-50 last:border-0 hover:bg-white hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet">
+    <div className="w-[calc(100%+2.5rem)] flex items-center gap-3 py-2.5 px-5 -mx-5 rounded-lg border-b border-gray-50 last:border-0 hover:bg-white hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet">
       <button
         onClick={onClick}
         className={`flex-1 min-w-0 flex justify-between items-center gap-3 text-left ${paid ? 'opacity-40' : ''}`}
@@ -35,7 +35,7 @@ const ExpenseListItem = ({ primaryText, categoryName, categoryColor, secondaryTe
         <button
           onClick={onTogglePaid}
           aria-label={paid ? 'Mark as not paid' : 'Mark as paid'}
-          className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+          className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center active:scale-90 transition-all duration-150 ${
             paid
               ? 'bg-emerald-400 border-emerald-400 text-white'
               : 'border-gray-200 text-transparent hover:border-emerald-300'

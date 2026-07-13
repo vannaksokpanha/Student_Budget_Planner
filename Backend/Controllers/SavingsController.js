@@ -110,6 +110,18 @@ const update_Savings = async (req, res) => {
             });
         }
 
+        // A deposit can never reserve money the month doesn't have left.
+        // Only enforced once an income is set — without one, savings can be
+        // used standalone and there's no pool to protect.
+        if (adjustment > 0) {
+            const { budget, available } = await refreshBudget(req.user.id);
+            if (budget && Number(budget.monthly_income) > 0 && adjustment > available) {
+                return res.status(400).json({
+                    error: `You only have $${available.toFixed(2)} left to spend this month.`
+                });
+            }
+        }
+
         await goal.update({ current_amount: Number(goal.current_amount) + adjustment });
 
         // Mirror the change into this month's budget reservation

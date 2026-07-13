@@ -95,7 +95,7 @@ const ExpenseForm = ({
         <button
           onClick={handleAdd}
           disabled={!amount}
-          className={`self-stretch shrink-0 w-20 rounded-xl font-causten font-bold text-sm disabled:opacity-20 transition-opacity active:scale-95 ${
+          className={`self-stretch shrink-0 w-20 rounded-xl font-causten font-bold text-sm disabled:opacity-20 enabled:hover:-translate-y-0.5 enabled:hover:shadow-md transition-all duration-150 active:scale-95 ${
             dark ? 'bg-white text-brand-dark-violet' : 'bg-brand-dark-violet text-white'
           }`}
         >
@@ -128,7 +128,7 @@ const ExpenseForm = ({
               <button
                 onClick={() => setName('')}
                 aria-label="Clear note"
-                className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${
+                className={`absolute right-3 top-1/2 -translate-y-1/2 active:scale-90 transition-all duration-150 ${
                   dark ? 'text-white/40 hover:text-white' : 'text-brand-dark-violet/40 hover:text-brand-dark-violet'
                 }`}
               >

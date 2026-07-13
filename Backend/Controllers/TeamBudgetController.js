@@ -207,9 +207,9 @@ const getGroupExpenses = async (req, res) => {
     }
 };
 
-// Only the group owner adds contribution entries — regular members can't add
-// their own here. What a member CAN do is add itemized spending underneath
-// a contribution that's already theirs (see addExpenseItem below).
+// Any member can log their own contribution. The owner can additionally log
+// one on behalf of another member (body.userId) — everyone else's entries are
+// always recorded under their own account, whatever the body says.
 const addContribution = async (req, res) => {
     try {
         const { groupId } = req.params;
@@ -218,24 +218,25 @@ const addContribution = async (req, res) => {
         const status = req.body.status || 'Paid';
 
         const membership = await findMembership(req.user.id, groupId);
-        if (!membership || membership.member_role !== 'owner') {
-            return res.status(403).json({ message: 'Only the group owner can add a contribution' });
+        if (!membership) {
+            return res.status(403).json({ message: 'You are not a member of this group' });
         }
         if (!Number.isFinite(amount) || amount <= 0) {
             return res.status(400).json({ message: 'Amount must be a positive number' });
-        }
-        if (!req.body.userId) {
-            return res.status(400).json({ message: 'Contributor is required' });
         }
         if (!STATUS_OPTIONS.includes(status)) {
             return res.status(400).json({ message: 'Invalid status' });
         }
 
-        const targetMembership = await findMembership(req.body.userId, groupId);
-        if (!targetMembership) {
-            return res.status(404).json({ message: 'That member is not in this group' });
+        const isOwner = membership.member_role === 'owner';
+        const contributorId = isOwner && req.body.userId ? Number(req.body.userId) : req.user.id;
+
+        if (contributorId !== req.user.id) {
+            const targetMembership = await findMembership(contributorId, groupId);
+            if (!targetMembership) {
+                return res.status(404).json({ message: 'That member is not in this group' });
+            }
         }
-        const contributorId = Number(req.body.userId);
 
         const expense = await Expense.create({
             user_id: contributorId,

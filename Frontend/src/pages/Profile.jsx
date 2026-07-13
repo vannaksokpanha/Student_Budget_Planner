@@ -66,7 +66,7 @@ const Profile = () => {
       <div className="bg-brand-base px-5 pt-12 pb-20">
         <button
           onClick={() => navigate(-1)}
-          className="text-white/60 hover:text-white mb-6 flex items-center gap-1 transition-colors"
+          className="text-white/60 hover:text-white active:scale-95 mb-6 flex items-center gap-1 transition-all duration-150"
         >
           <TbArrowLeft className="w-5 h-5" />
           <span className="text-sm font-causten">Back</span>
@@ -116,7 +116,7 @@ const Profile = () => {
 
           <button
             onClick={() => {}}
-            className="w-full flex items-center gap-4 py-4 text-left"
+            className="w-full flex items-center gap-4 py-4 text-left active:scale-[0.98] transition-transform duration-150"
           >
             <div className="w-10 h-10 rounded-full bg-brand-light-pink flex items-center justify-center">
               <TbShield className="w-5 h-5 text-brand-dark-violet" />
@@ -135,7 +135,7 @@ const Profile = () => {
       <div className="mx-4 mt-6">
         <button
           onClick={handleLogout}
-          className="w-full bg-white rounded-2xl shadow-lg px-5 py-4 flex items-center gap-4 text-left hover:bg-red-50 transition-colors"
+          className="w-full bg-white rounded-2xl shadow-lg px-5 py-4 flex items-center gap-4 text-left hover:bg-red-50 active:scale-[0.98] transition-all duration-150"
         >
           <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
             <TbLogout className="w-5 h-5 text-red-400" />
