@@ -230,15 +230,14 @@ const Savings = () => {
   if (!ready) return null;
 
   return (
-    <div className="md:hidden min-h-screen bg-brand-white pb-24">
+    <div className="min-h-screen bg-brand-white pb-24 md:pb-6">
 
-      {/* Header — same structure as Daily Log's: greeting + title left, a stat
-          beside the profile top-right, and a hero box with the headline number */}
+      {/* Header */}
       <div
-        className="relative px-5 pt-12 pb-10 min-h-45 bg-brand-base"
+        className="relative px-5 md:px-8 pt-12 md:pt-10 pb-10 min-h-45 bg-brand-base"
         style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
       >
-        <div className="absolute top-12 right-5 flex items-center gap-3">
+        <div className="absolute top-12 right-5 md:right-8 flex items-center gap-3">
           <div className="h-12 flex flex-col justify-center text-right">
             <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Active Goals</p>
             <p className="text-white text-xl font-causten font-extrabold leading-none">{goals.length}</p>
@@ -253,14 +252,22 @@ const Savings = () => {
           </button>
         </div>
 
-        <div className="mb-6 pr-40">
-          <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
-          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Savings</h1>
+        <div className="mb-6 md:mb-8 md:flex md:justify-between md:items-end pr-40">
+          <div>
+            <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
+            <h1 className="text-white text-3xl md:text-4xl font-causten font-extrabold tracking-tight">Savings</h1>
+          </div>
+          <button
+            onClick={openModal}
+            className="hidden md:inline-flex items-center gap-2 mt-4 px-6 py-2.5 rounded-xl bg-white/20 text-white
+                       font-causten font-bold text-sm hover:bg-white/30 transition-colors shrink-0"
+          >
+            + New Goal
+          </button>
         </div>
 
-        {/* Next-goal hero — spotlights the goal closest to completion, its
-            progress bar filling along the bottom edge */}
-        <div className="relative bg-white/15 rounded-2xl px-4 pt-9 pb-11 text-center">
+        {/* Next-goal hero */}
+        <div className="relative bg-white/15 rounded-2xl px-4 md:px-6 pt-9 pb-11 text-center md:max-w-xl md:mx-auto">
           {closestGoal ? (
             <>
               <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2 truncate px-2">
@@ -296,19 +303,19 @@ const Savings = () => {
       </div>
 
       {/* White sheet — rounded top corners rise over the header color */}
-      <div className="relative z-10 -mt-6 bg-brand-white rounded-t-3xl pt-1">
+      <div className="relative z-10 -mt-6 md:-mt-4 bg-brand-white rounded-t-3xl pt-1">
 
       {/* Suggestions Section */}
-      <section className="mx-5 mt-6">
+      <section className="mx-5 md:mx-8 mt-6">
         <p className="font-causten font-bold text-brand-dark-violet text-xl mb-2">
           People often save for
         </p>
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide md:grid md:grid-cols-5 md:overflow-visible">
           {suggestions.map((s) => (
             <button
               key={s.label}
               onClick={() => openModalWithSuggestion(s.label)}
-              className="shrink-0 bg-white rounded-xl shadow-sm hover:bg-brand-dark-violet hover:shadow-md transition-all group px-4 py-3 flex flex-col items-center gap-1.5 min-w-24 active:scale-95"
+              className="shrink-0 md:shrink bg-white rounded-xl shadow-sm hover:bg-brand-dark-violet hover:shadow-md transition-all group px-4 py-3 flex flex-col items-center gap-1.5 min-w-24 md:min-w-0 active:scale-95"
             >
               <s.Icon className="w-8 h-8 text-brand-dark-violet group-hover:text-white transition-colors" />
               <span className="text-[10px] font-causten font-bold text-brand-dark-violet group-hover:text-white text-center uppercase leading-tight transition-colors">
@@ -320,7 +327,7 @@ const Savings = () => {
       </section>
 
       {/* Goals Section */}
-      <section className="mx-5 mt-6">
+      <section className="mx-5 md:mx-8 mt-6">
         <div className="flex justify-between items-center mb-3">
           <p className="font-causten font-bold text-brand-dark-violet text-xl">Your Goals</p>
           {goals.length > 0 && (
@@ -328,15 +335,15 @@ const Savings = () => {
           )}
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
           {goals.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-4">
+            <div className="flex flex-col items-center justify-center py-10 gap-4 md:col-span-2">
               <div className="bg-brand-light-pink rounded-full p-6">
                 <LiaPiggyBankSolid className="w-16 h-16 text-brand-dark-violet" />
               </div>
               <div className="text-center">
                 <p className="text-brand-dark-violet font-causten font-bold text-base">No goals yet</p>
-                <p className="text-gray-300 text-xs mt-1">Tap + to start saving toward something</p>
+                <p className="text-gray-300 text-xs mt-1">Click "New Goal" to start saving toward something</p>
               </div>
             </div>
           ) : (
@@ -355,10 +362,10 @@ const Savings = () => {
 
       </div>
 
-      {/* Floating + Button centered above NavBar */}
+      {/* Floating + Button — mobile only */}
       <button
         onClick={openModal}
-        className="fixed bottom-18 left-1/2 -translate-x-1/2 z-50
+        className="md:hidden fixed bottom-18 left-1/2 -translate-x-1/2 z-50
                    w-14 h-14 rounded-full bg-brand-dark-violet text-white text-3xl
                    flex items-center justify-center shadow-xl
                    hover:scale-110 active:scale-95 transition-transform duration-200"
@@ -369,12 +376,12 @@ const Savings = () => {
 
       {/* Add / Deduct Savings Modal */}
       {updateModal && selectedGoal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white rounded-t-3xl shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white md:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden">
 
             {/* Coloured header */}
             <div className="bg-brand-dark-violet px-6 pt-6 pb-8">
-              <div className="w-10 h-1 rounded-full bg-white/30 mx-auto mb-4" />
+              <div className="w-10 h-1 rounded-full bg-white/30 mx-auto md:hidden mb-4" />
               <p className="text-white/60 text-xs font-causten font-semibold uppercase tracking-widest mb-1">
                 {updateAction === 'add' ? 'Adding to' : 'Deducting from'}
               </p>
@@ -490,16 +497,16 @@ const Savings = () => {
       {/* Add Goal Modal */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm"
           onClick={closeModal}
         >
           <div
-            className="w-full max-w-md bg-white rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl
+            className="w-full max-w-md bg-white md:rounded-2xl rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl
                         animate-slide-up"
             onClick={e => e.stopPropagation()}
           >
-            {/* Drag handle */}
-            <div className="w-10 h-1 rounded-full bg-gray-300 mx-auto mb-5" />
+            {/* Drag handle — hidden on desktop */}
+            <div className="w-10 h-1 rounded-full bg-gray-300 mx-auto md:hidden mb-5" />
 
             <h2 className="font-causten font-bold text-brand-dark-violet text-2xl mb-6">
               NEW SAVINGS GOAL

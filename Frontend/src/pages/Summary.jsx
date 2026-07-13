@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { TbChevronLeft, TbChevronRight } from "react-icons/tb";
-import NavBar from '../components/NavBar';
 import ExpenseListItem from '../components/ExpenseListItem';
 
 const API = 'http://localhost:3000/api';
@@ -228,7 +227,6 @@ const Summary = () => {
         </div>
       </div>
 
-      <NavBar />
     </div>
   );
 };
