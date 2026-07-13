@@ -3,6 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../Context/UserContext';
 import GroupDetails from '../components/Team/GroupDetails';
 import GroupPanel from '../components/Team/GroupPanel';
+import CreateGroup from '../components/Team/CreateGroup';
+import JoinGroup from '../components/Team/JoinGroup';
+import NotificationBell from '../components/NotificationBell';
 
 // Relative path, not an absolute localhost URL — Vite's dev proxy forwards
 // /api to the backend, and that's what still works when this is served
@@ -56,6 +59,9 @@ const TeamBudget = () => {
   // picking a group drills into the detail view, "back" returns to the list.
   const [showDetailOnMobile, setShowDetailOnMobile] = useState(false);
   const [toast, setToast] = useState(null);
+  // Create / Join are bottom sheets on this page rather than separate routes
+  const [showCreate, setShowCreate] = useState(false);
+  const [showJoin, setShowJoin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useUser();
@@ -165,7 +171,6 @@ const TeamBudget = () => {
   }, [activeGroupId]);
 
   if (error) return <div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">{error}</h1></div>;
-  if (!ready) return null;
 
   const activeGroup = groups.find((g) => g.id === activeGroupId) || null;
 
@@ -183,11 +188,23 @@ const TeamBudget = () => {
   };
 
   const handleCreateGroup = () => {
-    navigate("/create-group");
+    setShowCreate(true);
   };
 
   const handleJoinGroup = () => {
-    navigate("/join-group");
+    setShowJoin(true);
+  };
+
+  // Shared success path for both sheets: close, refresh the list, and open the
+  // group that was just created/joined.
+  const handleGroupJoined = async (newGroupId) => {
+    setShowCreate(false);
+    setShowJoin(false);
+    await fetchGroups();
+    if (newGroupId) {
+      setActiveGroupId(newGroupId);
+      setShowDetailOnMobile(true);
+    }
   };
 
   const handleAddContribution = () => {
@@ -311,20 +328,51 @@ const TeamBudget = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gray-50 font-sans">
-      <div className={`${showDetailOnMobile ? 'hidden' : 'block'} lg:block`}>
-        <GroupPanel
-          groups={filteredGroups}
-          activeGroupId={activeGroupId}
-          onGroupSelect={handleGroupSelect}
-          onSearch={setSearchQuery}
-          onCreateGroup={handleCreateGroup}
-          onJoinGroup={handleJoinGroup}
-        />
+    <div className="min-h-screen bg-white pb-24 font-causten">
+
+      {/* ── Header — same gradient hero as the other pages ─────────────────── */}
+      <div
+        className="relative px-5 pt-12 pb-10 min-h-45 bg-brand-base"
+        style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
+      >
+        {/* Bell + profile avatar */}
+        <div className="absolute top-12 right-5 flex items-center gap-3">
+          <NotificationBell />
+          <button
+            onClick={() => navigate('/profile')}
+            className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
+          >
+            <span className="text-white font-causten font-bold text-base">
+              {user?.name?.charAt(0)?.toUpperCase() || '?'}
+            </span>
+          </button>
+        </div>
+
+        {/* Page title */}
+        <div className="mb-3 pr-16">
+          <p className="text-white/60 text-base font-causten">Budget with your</p>
+          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Teams</h1>
+        </div>
       </div>
 
-      <div className={`${showDetailOnMobile ? 'block' : 'hidden'} lg:block w-full ml-0 flex-1 overflow-y-auto lg:w-auto`}>
-        <GroupDetails
+      {/* ── Content sheet: group list + details. Gated on `ready` so it never
+          renders with empty data before groups load; the header above paints
+          immediately, so there's no white flash. ──────────────────────────── */}
+      {ready && (
+      <div className="relative z-10 bg-white flex flex-col lg:flex-row lg:items-start">
+        <div className={`${showDetailOnMobile ? 'hidden' : 'block'} lg:block`}>
+          <GroupPanel
+            groups={filteredGroups}
+            activeGroupId={activeGroupId}
+            onGroupSelect={handleGroupSelect}
+            onSearch={setSearchQuery}
+            onCreateGroup={handleCreateGroup}
+            onJoinGroup={handleJoinGroup}
+          />
+        </div>
+
+        <div className={`${showDetailOnMobile ? 'block' : 'hidden'} lg:block w-full ml-0 flex-1 lg:w-auto`}>
+          <GroupDetails
           group={activeGroup}
           expenses={expenses}
           members={members}
@@ -341,12 +389,21 @@ const TeamBudget = () => {
           onDeleteGroup={handleDeleteGroup}
           onDeleteContribution={handleDeleteContribution}
         />
+        </div>
       </div>
+      )}
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-brand-dark-violet px-4 py-2.5 text-sm font-causten font-bold text-white shadow-lg">
           {toast}
         </div>
+      )}
+
+      {showCreate && (
+        <CreateGroup onClose={() => setShowCreate(false)} onSuccess={handleGroupJoined} />
+      )}
+      {showJoin && (
+        <JoinGroup onClose={() => setShowJoin(false)} onSuccess={handleGroupJoined} />
       )}
     </div>
   );

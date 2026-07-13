@@ -1,17 +1,12 @@
 const Expense = require('../models/Expense');
 const ExpensePreset = require('../models/ExpensePreset');
 const Category = require('../models/Category');
-
-const today = () => {
-  const d = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
+const { TYPES, todayString } = require('../utils/budgetMath');
 
 const getDailyLogs = async (req, res) => {
   try {
     const logs = await Expense.findAll({
-      where: { user_id: req.user.id, expense_type: 'Daily Spending', expense_date: today() },
+      where: { user_id: req.user.id, expense_type: TYPES.DAILY, expense_date: todayString() },
       include: [{ model: Category, attributes: ['category_id', 'name', 'color'] }],
       order: [['expense_id', 'DESC']]
     });
@@ -32,8 +27,8 @@ const addDailyLog = async (req, res) => {
       amount,
       category_id: category_id || null,
       expense_description: expense_description || '',
-      expense_date: expense_date || today(),
-      expense_type: 'Daily Spending'
+      expense_date: expense_date || todayString(),
+      expense_type: TYPES.DAILY
     });
     log = await Expense.findByPk(log.expense_id, {
       include: [{ model: Category, attributes: ['category_id', 'name', 'color'] }]
@@ -49,7 +44,7 @@ const updateDailyLog = async (req, res) => {
     const { id } = req.params;
     const { amount, category_id, expense_description, expense_date } = req.body;
     const log = await Expense.findOne({
-      where: { expense_id: id, user_id: req.user.id, expense_type: 'Daily Spending' }
+      where: { expense_id: id, user_id: req.user.id, expense_type: TYPES.DAILY }
     });
     if (!log) return res.status(404).json({ message: 'Entry not found' });
     await log.update({ amount, category_id: category_id || null, expense_description, expense_date });
@@ -66,7 +61,7 @@ const deleteDailyLog = async (req, res) => {
   try {
     const { id } = req.params;
     const log = await Expense.findOne({
-      where: { expense_id: id, user_id: req.user.id, expense_type: 'Daily Spending' }
+      where: { expense_id: id, user_id: req.user.id, expense_type: TYPES.DAILY }
     });
     if (!log) return res.status(404).json({ message: 'Entry not found' });
     await log.destroy();

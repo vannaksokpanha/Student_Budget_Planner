@@ -47,33 +47,33 @@ const ViewHistory = () => {
   if (!ready) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10 font-sans sm:px-8">
+    <div className="min-h-screen bg-brand-white px-4 py-10 font-causten sm:px-8">
       <div className="mx-auto max-w-2xl">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/team')}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-brand-dark-violet/60 hover:bg-brand-dark-violet/5 active:scale-90 transition-all duration-150"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold text-gray-900">Contribution history</h1>
+          <h1 className="text-xl font-causten font-extrabold text-brand-dark-violet">Contribution history</h1>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 bg-white">
-          {error && <p className="px-6 py-6 text-center text-sm text-red-500">{error}</p>}
+        <div className="mt-6 overflow-hidden rounded-2xl shadow-lg bg-white">
+          {error && <p className="px-6 py-6 text-center text-sm text-red-400">{error}</p>}
 
           {!error && contributions.length === 0 && (
-            <p className="px-6 py-6 text-center text-sm text-gray-400">No contributions yet.</p>
+            <p className="px-6 py-6 text-center text-sm text-brand-dark-violet/45">No contributions yet.</p>
           )}
 
           {!error && contributions.map((row) => (
             <div key={row.id} className="flex items-center justify-between gap-3 border-b border-gray-50 px-6 py-4 last:border-b-0">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-gray-900">{row.name}</p>
-                <p className="text-xs text-gray-400">{row.date}</p>
-                <p className="mt-1 text-sm text-gray-700">{row.reason}</p>
+                <p className="truncate text-sm font-causten font-bold text-brand-dark-violet">{row.name}</p>
+                <p className="text-xs text-brand-dark-violet/45">{row.date}</p>
+                <p className="mt-1 text-sm text-brand-dark-violet/75">{row.reason}</p>
               </div>
-              <p className="shrink-0 text-sm font-bold text-gray-900">{row.amount}</p>
+              <p className="shrink-0 text-sm font-causten font-extrabold text-brand-dark-violet">{row.amount}</p>
             </div>
           ))}
         </div>

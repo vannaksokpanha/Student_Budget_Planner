@@ -38,10 +38,19 @@ const Expense = sequelize.define("Expense", {
     // 'Expected Expense'  — budget page, one-off; dies with its month
     // 'Daily Spending'    — daily log entries
     // 'Group Expense'     — shared group expenses
+    // 'Savings'           — this month's net deposits into one saving goal
+    //                       (one row per goal per month, kept in sync by the
+    //                       savings controller; reserves budget like a bill)
     // (renamed from 'Fixed' — if the server won't boot over old 'Fixed' rows,
-    // drop the database and let sync recreate it)
+    // drop the database and let sync recreate it. Adding an enum value needs
+    // scripts/addSavingsSupport.js run once — plain sync() won't alter.)
     expense_type: {
-        type: DataTypes.ENUM("Monthly Bill", "Expected Expense", "Daily Spending", "Group Expense")
+        type: DataTypes.ENUM("Monthly Bill", "Expected Expense", "Daily Spending", "Group Expense", "Savings")
+    },
+    // Savings rows only: which SavingGoal the reservation belongs to
+    goal_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
     // Budget-page types only: date the user ticked the item off as paid.
     // NULL = not paid yet. Status stamp only — never used in allowance math.

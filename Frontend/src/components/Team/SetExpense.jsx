@@ -118,37 +118,37 @@ const SetExpense = () => {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10 font-sans sm:px-8">
+    <div className="min-h-screen bg-brand-white px-4 py-10 font-causten sm:px-8">
       <div className="mx-auto max-w-2xl">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/team')}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-brand-dark-violet/60 hover:bg-brand-dark-violet/5 active:scale-90 transition-all duration-150"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{reason}</h1>
-            <p className="text-sm text-gray-500">${Number(amount || 0).toFixed(2)} contributed</p>
+            <h1 className="text-xl font-causten font-extrabold text-brand-dark-violet">{reason}</h1>
+            <p className="text-sm text-brand-dark-violet/60">${Number(amount || 0).toFixed(2)} contributed</p>
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 bg-white">
-          <h2 className="border-b border-gray-100 px-6 py-4 text-sm font-semibold text-gray-700">What it was spent on</h2>
+        <div className="mt-6 overflow-hidden rounded-2xl shadow-lg bg-white">
+          <h2 className="border-b border-gray-100 px-6 py-4 text-xs font-causten font-bold uppercase tracking-widest text-brand-dark-violet/60">What it was spent on</h2>
           {items.length === 0 && (
-            <p className="px-6 py-6 text-center text-sm text-gray-400">Nothing set yet.</p>
+            <p className="px-6 py-6 text-center text-sm text-brand-dark-violet/45">Nothing set yet.</p>
           )}
           {items.map((item) => (
             <div key={item.id} className="flex items-center justify-between gap-3 border-b border-gray-50 px-6 py-3 last:border-b-0">
-              <p className="text-sm text-gray-900">{item.name}</p>
+              <p className="text-sm text-brand-dark-violet">{item.name}</p>
               <div className="flex items-center gap-3">
                 {item.amount !== null && (
-                  <p className="text-sm font-semibold text-gray-700">${item.amount.toFixed(2)}</p>
+                  <p className="text-sm font-causten font-bold text-brand-dark-violet">${item.amount.toFixed(2)}</p>
                 )}
                 {isMine && (
                   <button
                     onClick={() => handleRemoveItem(item.id)}
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-brand-dark-violet/40 hover:text-red-400 active:scale-90 transition-all duration-150"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -159,15 +159,15 @@ const SetExpense = () => {
         </div>
 
         {isMine ? (
-          <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-gray-100 bg-white p-6">
-            <h2 className="text-sm font-semibold text-gray-700">Add an item</h2>
+          <form onSubmit={handleSubmit} className="mt-6 rounded-2xl shadow-lg bg-white p-6">
+            <h2 className="text-xs font-causten font-bold uppercase tracking-widest text-brand-dark-violet/60">Add an item</h2>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Pasta, Pizza, Rice"
-                className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-400"
+                className="flex-1 rounded-xl bg-brand-dark-violet/5 px-4 py-3 text-sm text-brand-dark-violet placeholder-brand-dark-violet/40 outline-none focus:ring-2 focus:ring-brand-dark-violet/15 transition-shadow"
               />
               <input
                 type="number"
@@ -176,25 +176,25 @@ const SetExpense = () => {
                 value={itemAmount}
                 onChange={(e) => setItemAmount(e.target.value)}
                 placeholder="$ (optional)"
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-400 sm:w-32"
+                className="w-full rounded-xl bg-brand-dark-violet/5 px-4 py-3 text-sm text-brand-dark-violet placeholder-brand-dark-violet/40 outline-none focus:ring-2 focus:ring-brand-dark-violet/15 transition-shadow sm:w-32"
               />
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-xl bg-indigo-800 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-900 disabled:opacity-50"
+                className="rounded-xl bg-brand-dark-violet px-5 py-3 text-sm font-causten font-bold text-white enabled:hover:bg-brand-base enabled:hover:-translate-y-0.5 enabled:hover:shadow-md active:scale-95 transition-all duration-150 disabled:opacity-50"
               >
                 {submitting ? "Adding…" : "Add"}
               </button>
             </div>
-            {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
           </form>
         ) : (
-          <p className="mt-6 text-center text-sm text-gray-400">Only the contributor can set what this was spent on.</p>
+          <p className="mt-6 text-center text-sm text-brand-dark-violet/45">Only the contributor can set what this was spent on.</p>
         )}
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-brand-dark-violet px-4 py-2.5 text-sm font-causten font-bold text-white shadow-lg">
           {toast}
         </div>
       )}

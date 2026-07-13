@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API } from '../utils/api';
 import { Link,useNavigate } from 'react-router-dom'
 import { validation } from '../validations/auth/loginValidation.js'
 import { useUser } from '../Context/UserContext.jsx'
@@ -27,7 +28,7 @@ const Login = () => {
     try {
       setLoading(true);
 
-      const res = await fetch('/api/auth/login' , {
+      const res = await fetch(`${API}/auth/login` , {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(values)
@@ -36,7 +37,7 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok){
-        // login() updates both localStorage AND the context state, so the NavBar name refreshes
+        // login() updates both localStorage AND the context state, so the sidebar name refreshes
         login({ name: data.user.name, token: data.token })
         navigate('/home')
       }
@@ -54,7 +55,6 @@ const Login = () => {
 
   }
 
-  
   const handleInput = (event) => {
     setValues(prev => ({ ...prev, [event.target.name]: event.target.value }))
   }
@@ -65,7 +65,14 @@ const Login = () => {
       {/* Desktop (>=md) */}
       <div className="hidden md:flex min-h-screen">
         {/* Left side */}
-        <div className="flex-1 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 flex flex-col items-center justify-center p-12 border-r border-white/20">
+        <div
+          className="flex-1 bg-brand-base flex flex-col items-center justify-center p-12 border-r border-white/20"
+          style={{
+            backgroundImage: "url('/Balance-Pattern.svg'), linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))",
+            backgroundSize: '1000px auto, auto',
+            backgroundRepeat: 'repeat, no-repeat'
+          }}
+        >
           <div className="text-center">
             <h1 className='text-7xl font-causten font-extrabold text-white '>Balance</h1>
             <p className='text-xl font-causten font-semibold text-white/80 '>Bills are tucked away</p>
@@ -108,7 +115,7 @@ const Login = () => {
                   name='bbb'
                   type='submit'
                   disabled={loading}
-                  className='w-full py-3 bg-white/20 hover:bg-brand-dark-violet rounded-lg font-semibold text-white transition-colors'
+                  className='w-full py-3 bg-white/20 hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 rounded-lg font-semibold text-white transition-all duration-150'
                 >
                   {loading ? 'Signing in...' : 'Sign in'}
                 </button>
@@ -120,7 +127,7 @@ const Login = () => {
                 </div>
                 <button
                   type='button'
-                  className='w-full py-3 bg-brand-light-pink hover:bg-brand-dark-violet rounded-lg font-semibold text-brand-dark-violet hover:text-white transition-colors'
+                  className='w-full py-3 bg-brand-light-pink hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 rounded-lg font-semibold text-brand-dark-violet hover:text-white transition-all duration-150'
                 >
                   <span className='text-lg'>CONTINUE WITH GOOGLE</span>
                 </button>
@@ -171,7 +178,7 @@ const Login = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full py-3 text-white hover:text-white hover:bg-brand-dark-violet bg-white/20 rounded-lg font-causten font-bold transition-colors'
+              className='w-full py-3 text-white hover:text-white hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 bg-white/20 rounded-lg font-causten font-bold transition-all duration-150'
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -184,7 +191,7 @@ const Login = () => {
 
             <button
               type='button'
-              className='w-full py-3 text-brand-dark-violet hover:text-white bg-brand-light-pink hover:bg-brand-dark-violet rounded-lg font-semibold transition-colors'
+              className='w-full py-3 text-brand-dark-violet hover:text-white bg-brand-light-pink hover:bg-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 rounded-lg font-semibold transition-all duration-150'
             >
               Continue with Google
             </button>

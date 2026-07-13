@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TbX } from "react-icons/tb";
 import ConfirmDialog from "./ConfirmDialog";
+import CategoryChips from "./CategoryChips";
 
 // Shared edit bottom sheet for an existing expense — mirrors Daily Log's
 // original "Edit Expense" sheet. `showDate` controls whether the Date field
@@ -20,14 +21,6 @@ const EditExpenseSheet = ({
   const [name, setName] = useState(expense.name || '');
   const [date, setDate] = useState(expense.date || '');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-
-  const handleCategoryChange = (e) => {
-    if (e.target.value === '__add_new__') {
-      onRequestNewCategory?.();
-      return;
-    }
-    setCategoryId(e.target.value);
-  };
 
   const handleSave = async () => {
     await onSave(expense.id, {
@@ -57,14 +50,14 @@ const EditExpenseSheet = ({
       <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-60 px-5 pt-5 pb-10 shadow-2xl">
         <div className="flex justify-between items-center mb-5">
           <p className="font-causten font-bold text-brand-dark-violet text-lg">Edit Expense</p>
-          <button onClick={onClose}>
-            <TbX className="w-5 h-5 text-gray-400" />
+          <button onClick={onClose} className="active:scale-90 transition-transform duration-150">
+            <TbX className="w-5 h-5 text-brand-dark-violet/60" />
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Amount</p>
+            <p className="text-xs text-brand-dark-violet/80 uppercase tracking-wider mb-1">Amount</p>
             <div className="flex items-center gap-1 border-b border-gray-100 pb-2">
               <span className="text-2xl font-causten font-bold text-brand-dark-violet">$</span>
               <input
@@ -77,33 +70,27 @@ const EditExpenseSheet = ({
             </div>
           </div>
 
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Category</p>
-            <select
-              value={categoryId}
-              onChange={handleCategoryChange}
-              className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent appearance-none p-0"
-            >
-              <option value="">Uncategorized</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              <option value="__add_new__">+ Add new category</option>
-            </select>
-          </div>
+          <CategoryChips
+            categories={categories}
+            value={categoryId}
+            onChange={setCategoryId}
+            onRequestNew={onRequestNewCategory}
+          />
 
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{namePlaceholder}</p>
+            <p className="text-xs text-brand-dark-violet/80 uppercase tracking-wider mb-1">{namePlaceholder}</p>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder={namePlaceholder}
-              className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-gray-300"
+              className="w-full text-sm text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-brand-dark-violet/40"
             />
           </div>
 
           {showDate && (
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Date</p>
+              <p className="text-xs text-brand-dark-violet/80 uppercase tracking-wider mb-1">Date</p>
               <input
                 type="date"
                 value={date}
@@ -118,13 +105,13 @@ const EditExpenseSheet = ({
         <div className="flex gap-3 mt-6">
           <button
             onClick={() => setConfirmingDelete(true)}
-            className="flex-1 py-3 rounded-xl border border-red-200 text-red-400 font-causten font-bold text-sm"
+            className="flex-1 py-3 rounded-xl bg-red-400 text-white font-causten font-bold text-sm hover:bg-red-500 hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
           >
             Delete
           </button>
           <button
             onClick={handleSave}
-            className="flex-2 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold text-sm"
+            className="flex-2 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold text-sm hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
           >
             Save
           </button>

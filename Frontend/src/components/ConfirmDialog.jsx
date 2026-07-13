@@ -17,17 +17,17 @@ const ConfirmDialog = ({
       <p className="font-causten font-bold text-brand-dark-violet text-lg">
         Are you sure you want to delete '{itemName}'?
       </p>
-      {note && <p className="text-sm text-gray-400 mt-2">{note}</p>}
+      {note && <p className="text-sm text-brand-dark-violet/60 mt-2">{note}</p>}
       <div className="flex gap-3 mt-6">
         <button
           onClick={onCancel}
-          className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-400 font-causten font-bold text-sm"
+          className="flex-1 py-3 rounded-xl border border-gray-200 text-brand-dark-violet/60 font-causten font-bold text-sm hover:bg-gray-50 active:scale-95 transition-all duration-150"
         >
           {cancelLabel}
         </button>
         <button
           onClick={onConfirm}
-          className="flex-1 py-3 rounded-xl bg-red-400 text-white font-causten font-bold text-sm"
+          className="flex-1 py-3 rounded-xl bg-red-400 text-white font-causten font-bold text-sm hover:bg-red-500 active:scale-95 transition-all duration-150"
         >
           {confirmLabel}
         </button>

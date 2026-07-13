@@ -4,11 +4,14 @@ import { LiaPiggyBankSolid } from "react-icons/lia";
 import { TbX, TbPlus } from "react-icons/tb";
 import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
-import ExpenseListItem from '../components/ExpenseListItem';
 import EditExpenseSheet from '../components/EditExpenseSheet';
 import PresetItem from '../components/PresetItem';
+import CategoryChips from '../components/CategoryChips';
+import SetupAlert from '../components/SetupAlert';
+import NotificationBell from '../components/NotificationBell';
+import { getCategoryIcon } from '../utils/categoryIcon';
 
-const API = 'http://localhost:3000/api';
+import { API } from '../utils/api';
 
 const isTokenValid = (token) => {
   try {
@@ -53,6 +56,10 @@ const DailyLog = () => {
   const [expenses, setExpenses] = useState([]);
   const [editing, setEditing] = useState(null);
   const [dailyBudget, setDailyBudget] = useState(0);
+  const [baseAllowance, setBaseAllowance] = useState(0);
+  // null until the budget loads — the setup banner only renders on a real 0,
+  // never during the loading flash
+  const [monthlyIncome, setMonthlyIncome] = useState(null);
   const [presets, setPresets] = useState([]);
   const [showPresetForm, setShowPresetForm] = useState(false);
   const [presetForm, setPresetForm] = useState({ category_id: '', amount: '', note: '' });
@@ -81,6 +88,8 @@ const DailyLog = () => {
     ]).then(([logs, budget, presetList, cats]) => {
       setExpenses(Array.isArray(logs) ? logs.map(mapLog) : []);
       setDailyBudget(parseFloat(budget?.daily_allowance) || 0);
+      setBaseAllowance(parseFloat(budget?.base_allowance) || 0);
+      setMonthlyIncome(parseFloat(budget?.monthly_income) || 0);
       setPresets(Array.isArray(presetList) ? presetList.map(mapPreset) : []);
       setCategories(Array.isArray(cats) ? cats.map(mapCategory) : []);
     });
@@ -94,8 +103,22 @@ const DailyLog = () => {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
 
-  // Logs a new expense; matches ExpenseForm's onSubmit({ amount, category_id, name }) contract
-  const handleAdd = async ({ amount, category_id, name }) => {
+  // Re-pulls the backend's allowance numbers — a backdated entry changes
+  // "spent before today", which feeds today's carryover
+  const refreshBudgetNumbers = async () => {
+    try {
+      const res = await fetch(`${API}/monthly-budget`, { headers: authHeader() });
+      if (!res.ok) return;
+      const budget = await res.json();
+      setDailyBudget(parseFloat(budget?.daily_allowance) || 0);
+      setBaseAllowance(parseFloat(budget?.base_allowance) || 0);
+      setMonthlyIncome(parseFloat(budget?.monthly_income) || 0);
+    } catch { /* keep the numbers we have */ }
+  };
+
+  // Logs a new expense; matches ExpenseForm's onSubmit({ amount, category_id, name, date }) contract
+  const handleAdd = async ({ amount, category_id, name, date }) => {
+    const logDate = date || todayString();
     const res = await fetch(`${API}/daily-log`, {
       method: 'POST',
       headers: authHeader(),
@@ -103,12 +126,20 @@ const DailyLog = () => {
         amount,
         category_id: category_id || null,
         expense_description: name || '',
-        expense_date: todayString()
+        expense_date: logDate
       })
     });
     if (!res.ok) return false;
     const created = await res.json();
-    setExpenses(prev => [mapLog(created), ...prev]);
+
+    if (logDate === todayString()) {
+      // Today's entry joins the list and today's totals
+      setExpenses(prev => [mapLog(created), ...prev]);
+    } else {
+      // Backdated — it lives on a past day, so it won't appear in today's
+      // list, but it shrinks today's allowance via the carryover
+      refreshBudgetNumbers();
+    }
   };
 
   // Tapping a preset loads it into the quick-add form for review instead of
@@ -209,83 +240,163 @@ const DailyLog = () => {
   const remainPct = dailyBudget > 0 ? Math.max(0, Math.min(remaining / dailyBudget, 1)) : 0;
 
   return (
-    <div className="min-h-screen bg-brand-white pb-24">
+    <div
+      className="min-h-screen bg-brand-base pb-24 md:pb-10 md:pl-56"
+      style={{
+        // Two layers: the money-doodle pattern (white at 15% opacity, tiled)
+        // over the page gradient. Overspent turns the wash orange, fading
+        // down the full height so there's no hard cutoff line anywhere
+        backgroundImage: remaining < 0
+          ? "url('/Balance-Pattern.svg'), linear-gradient(to bottom, rgba(249, 115, 22, 0.55), rgba(249, 115, 22, 0.05))"
+          : "url('/Balance-Pattern.svg'), linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))",
+        backgroundSize: '1000px auto, auto',
+        backgroundRepeat: 'repeat, no-repeat'
+      }}
+    >
+      {/* On desktop the content sits in a centered phone-width column beside
+          the sidebar; on mobile it spans the screen as before */}
+      <div className="md:max-w-2xl md:mx-auto md:pt-8">
 
-      {/* Header */}
-      <div
-        className="relative px-5 pt-12 pb-10 min-h-45 bg-brand-base transition-all duration-700"
-        style={{
-          backgroundImage: remaining < 0
-            ? 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(249, 115, 22, 0.7))'
-            : 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))'
-        }}
-      >
-        {/* Top right: daily allowance vertically centered beside the profile */}
+      {/* Header — transparent over the page's purple; the overspend warning
+          lives on the hero box below, not up here */}
+      <div className="relative px-5 pt-12 pb-0 md:rounded-3xl md:pt-10">
+        {/* Bell + profile avatar — pinned top-right, same spot as on the Budget page */}
         <div className="absolute top-12 right-5 flex items-center gap-3">
-          <div className="h-12 flex flex-col justify-center text-right">
-            <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Daily Allowance</p>
-            <p className="text-white text-xl font-causten font-extrabold leading-none">${dailyBudget.toFixed(2)}</p>
-          </div>
+          <NotificationBell />
           <button
             onClick={() => navigate('/profile')}
-            className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
+            className="w-12 h-12 rounded-full bg-white/30 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
           >
-            <span className="text-white font-causten font-bold text-base">
+            <span className="text-white font-causten font-extrabold text-lg">
               {userName.charAt(0).toUpperCase()}
             </span>
           </button>
         </div>
 
-        <div className="mb-6 pr-40">
-          <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
-          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Daily Log</h1>
+        <div className="mb-4 pr-16">
+          <p className="text-white/60 text-base font-causten">Today's</p>
+          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Record</h1>
+          <p className="text-white/90 text-sm font-causten font-semibold mt-1">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
         </div>
 
-        {/* Remaining Today — hero box with the allowance bar along its bottom edge */}
-        <div className="relative bg-white/15 rounded-2xl px-4 pt-9 pb-11 text-center">
-          <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">Remaining Today</p>
-          <p className="text-white text-6xl font-causten font-extrabold tracking-tight">${remaining.toFixed(2)}</p>
+        {/* No income yet — explain the $0.00 allowance and offer the fix.
+            Renders only on a confirmed 0 (not while loading), and disappears
+            on its own once an income exists. */}
+        {monthlyIncome === 0 && (
+          <div className="mb-3">
+            <SetupAlert
+              message="No daily allowance yet — set your monthly income first and it'll be calculated for you."
+              actionLabel="Set it"
+              onAction={() => navigate('/expense')}
+            />
+          </div>
+        )}
+
+        {/* Hero card: Remaining Today as a slim status strip (label left,
+            amount right, drain bar underneath), then the quick-add form as
+            the card's main event. When overspent, the amount stays at $0.00
+            (what's actually spendable) and the deficit is spelled out. */}
+        <div className="bg-white rounded-2xl shadow-lg px-5 pt-4 pb-4">
+          {/* One fraction over the bar: remaining / allowance — exactly what
+              the bar measures. The allowance rides along smaller and muted;
+              the breakdown of where it comes from sits top-right. */}
+          <div className="flex justify-between items-start gap-3 mb-2">
+            <div>
+              <p className="text-brand-dark-violet/60 text-xs font-causten font-bold uppercase tracking-widest">Remaining Today</p>
+              <p className="flex items-baseline gap-1.5">
+                <span className={`text-xl font-causten font-extrabold tracking-tight ${remaining < 0 ? 'text-orange-500' : 'text-brand-dark-violet'}`}>
+                  ${Math.max(0, remaining).toFixed(2)}
+                </span>
+                <span className="text-sm font-causten font-bold text-brand-dark-violet/45">
+                  / ${dailyBudget.toFixed(2)}
+                </span>
+              </p>
+            </div>
+            {baseAllowance > 0 && (
+              <div className="text-right shrink-0">
+                <p className="text-brand-dark-violet/60 text-xs font-causten font-bold uppercase tracking-widest">Allowance</p>
+                <p className="text-[11px] font-causten leading-tight mt-2">
+                  <span className="text-brand-dark-violet/50">{`$${baseAllowance.toFixed(2)}/day`}</span>
+                  <span
+                    className={`font-semibold ${
+                      dailyBudget - baseAllowance > 0.005
+                        ? 'text-emerald-500'
+                        : dailyBudget - baseAllowance < -0.005
+                          ? 'text-orange-500'
+                          : 'text-brand-dark-violet/50'
+                    }`}
+                  >
+                    {dailyBudget - baseAllowance > 0.005
+                      ? `  + $${(dailyBudget - baseAllowance).toFixed(2)} saved`
+                      : dailyBudget - baseAllowance < -0.005
+                        ? `  − $${(baseAllowance - dailyBudget).toFixed(2)} behind`
+                        : '  on track'}
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* starts the day full and drains as money goes out */}
-          <div className="absolute left-4 right-4 bottom-4 h-1.5 rounded-full bg-white/20 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${remainPct * 100}%`,
-                backgroundColor: remaining < 0 ? '#FB923C' : '#FFDBFD'
+                backgroundColor: remaining < 0 ? '#FB923C' : '#6367FF'
               }}
+            />
+          </div>
+
+          {remaining < 0 && (
+            <p className="text-orange-500 text-xs font-causten font-semibold mt-1.5">
+              You're ${Math.abs(remaining).toFixed(2)} behind — tomorrow's allowance will absorb it
+            </p>
+          )}
+
+          {/* Receipt tear line — hand-drawn dashes so the spacing is ours:
+              10px dash, 10px gap (border-dashed can't control frequency) */}
+          <div
+            className="h-0.5 mt-4"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(to right, rgba(69, 71, 144, 0.25) 0 10px, transparent 10px 20px)'
+            }}
+          />
+          {/* Record an expense — the card's hero, so it keeps the big type */}
+          <div className="pt-4">
+            <ExpenseForm
+              bare
+              label="Record an expense"
+              namePlaceholder="Note (optional)"
+              categories={categories}
+              onRequestNewCategory={() => setShowCategoryForm(true)}
+              onSubmit={handleAdd}
+              prefill={formPrefill}
+              showDate
             />
           </div>
         </div>
       </div>
 
-      {/* Quick Add card */}
-      <div className="relative z-10 mx-5 -mt-5">
-        <ExpenseForm
-          label="Log an expense"
-          namePlaceholder="Note (optional)"
-          categories={categories}
-          onRequestNewCategory={() => setShowCategoryForm(true)}
-          onSubmit={handleAdd}
-          prefill={formPrefill}
-        />
-      </div>
-
       {/* Quick Access */}
-      <div className="mx-5 mt-7">
+      <div className="mx-5 mt-4">
         <div className="flex justify-between items-center mb-2">
-          <p className="font-causten font-bold text-brand-dark-violet text-xl">
+          <p className="font-causten font-bold text-white text-xl">
             Quick Access
           </p>
           <button
             onClick={() => setShowPresetForm(true)}
-            className="flex items-center gap-1 text-brand-dark-violet text-sm font-causten font-bold"
+            className="flex items-center gap-1 text-white/80 text-sm font-causten font-bold hover:text-white active:scale-95 transition-all duration-150"
           >
             <TbPlus className="w-4 h-4" /> ADD PRESET
           </button>
         </div>
 
         {presets.length === 0 ? (
-          <p className="text-gray-300 text-sm">No presets yet — add one to log common expenses in one tap.</p>
+          <p className="text-white/60 text-sm">No presets yet — add one to record common expenses in one tap.</p>
         ) : (
           <div className="grid grid-cols-4 gap-2">
             {presets.map(preset => (
@@ -308,13 +419,13 @@ const DailyLog = () => {
             <div className="flex justify-between items-center mb-5">
               <p className="font-causten font-bold text-brand-dark-violet text-xl">Add Preset</p>
               <button onClick={() => { setShowPresetForm(false); setPresetFormError(''); }}>
-                <TbX className="w-5 h-5 text-gray-400" />
+                <TbX className="w-5 h-5 text-brand-dark-violet/60" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Amount</p>
+                <p className="text-sm text-brand-dark-violet/80 uppercase tracking-wider mb-1">Amount</p>
                 <div className="flex items-center gap-1 border-b border-gray-100 pb-2">
                   <span className="text-2xl font-causten font-bold text-brand-dark-violet">$</span>
                   <input
@@ -328,33 +439,21 @@ const DailyLog = () => {
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Category</p>
-                <select
-                  value={presetForm.category_id}
-                  onChange={e => {
-                    if (e.target.value === '__add_new__') {
-                      setShowCategoryForm(true);
-                      return;
-                    }
-                    setPresetForm(f => ({ ...f, category_id: e.target.value }));
-                  }}
-                  className="w-full text-base text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent appearance-none p-0"
-                >
-                  <option value="">Uncategorized</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  <option value="__add_new__">+ Add new category</option>
-                </select>
-              </div>
+              <CategoryChips
+                categories={categories}
+                value={presetForm.category_id}
+                onChange={id => setPresetForm(f => ({ ...f, category_id: id }))}
+                onRequestNew={() => setShowCategoryForm(true)}
+              />
 
               <div>
-                <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Note (optional)</p>
+                <p className="text-sm text-brand-dark-violet/80 uppercase tracking-wider mb-1">Note (optional)</p>
                 <input
                   type="text"
                   placeholder="e.g. Morning coffee"
                   value={presetForm.note}
                   onChange={e => setPresetForm(f => ({ ...f, note: e.target.value }))}
-                  className="w-full text-base text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-gray-300"
+                  className="w-full text-base text-brand-dark-violet border-b border-gray-100 pb-2 outline-none bg-transparent placeholder-brand-dark-violet/40"
                 />
               </div>
             </div>
@@ -376,9 +475,9 @@ const DailyLog = () => {
       {/* Today's Spending */}
       <div className="mx-5 mt-6">
         <div className="flex justify-between items-center mb-3">
-          <p className="font-causten font-bold text-brand-dark-violet text-xl">Today's Spending</p>
+          <p className="font-causten font-bold text-white text-xl">Today's Spending</p>
           {expenses.length > 0 && (
-            <p className="text-sm text-gray-400">${todaySpent.toFixed(2)} spent</p>
+            <p className="text-sm text-white/70">${todaySpent.toFixed(2)} spent</p>
           )}
         </div>
 
@@ -388,23 +487,34 @@ const DailyLog = () => {
               <LiaPiggyBankSolid className="w-16 h-16 text-brand-dark-violet" />
             </div>
             <div className="text-center">
-              <p className="text-brand-dark-violet font-causten font-bold text-lg">Nothing logged yet</p>
-              <p className="text-gray-300 text-sm mt-1">Type an amount above and tap + ADD</p>
+              <p className="text-white font-causten font-bold text-lg">Nothing recorded yet</p>
+              <p className="text-white/60 text-sm mt-1">Type an amount above and tap + ADD</p>
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg px-5 py-5 space-y-2">
-            {expenses.map(e => (
-              <ExpenseListItem
+          <div className="space-y-2">
+            {/* Each entry is its own compact one-line card; tap to edit */}
+            {expenses.map(e => {
+              const CategoryIcon = getCategoryIcon(e.categoryName);
+              return (
+              <button
                 key={e.id}
-                primaryText={e.note || e.categoryName || 'Uncategorized'}
-                categoryName={e.categoryName || 'Uncategorized'}
-                categoryColor={e.categoryColor}
-                date={e.date}
-                amount={e.amount}
                 onClick={() => setEditing(e)}
-              />
-            ))}
+                className="w-full bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-2.5 text-left hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet"
+              >
+                <CategoryIcon className="w-4.5 h-4.5 shrink-0" style={{ color: e.categoryColor }} />
+                <p className="text-brand-dark-violet text-sm font-semibold truncate">
+                  {e.note || e.categoryName || 'Uncategorized'}
+                </p>
+                {e.note && (
+                  <p className="text-brand-dark-violet/45 text-xs shrink-0">{e.categoryName || 'Uncategorized'}</p>
+                )}
+                <p className="ml-auto text-brand-dark-violet font-causten font-bold text-sm shrink-0">
+                  ${e.amount.toFixed(2)}
+                </p>
+              </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -431,6 +541,7 @@ const DailyLog = () => {
         />
       )}
 
+      </div>
     </div>
   );
 };

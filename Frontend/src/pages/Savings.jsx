@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
+import { API } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import GoalCard from "../components/GoalCard";
-import { MdBeachAccess, MdWineBar, MdLaptopMac, MdPhoneAndroid } from 'react-icons/md';
-import { RiFirstAidKitLine } from 'react-icons/ri';
+import NotificationBell from '../components/NotificationBell';
+import { TbBeach, TbGlassFull, TbDeviceLaptop, TbDeviceMobile, TbFirstAidKit, TbX } from 'react-icons/tb';
 import { LiaPiggyBankSolid } from 'react-icons/lia';
 
+// Local JWT expiry check — same synchronous guard the other pages use, so the
+// page paints immediately instead of blanking on an async round-trip
+const isTokenValid = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+};
+
 const Savings = () => {
-  const [ready, setReady] = useState();
-  const [error, setError] = useState(null);
+  const [loaded, setLoaded] = useState(false);
   const [goals, setGoals] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -23,63 +34,27 @@ const Savings = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem('userName') || 'there';
 
-  // EFFECT 1: Auth Guard
+  // Synchronous auth guard, then load goals. Renders the page right away so the
+  // header paints without a white flash; `loaded` gates only the content area.
   useEffect(() => {
-    const verify = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        return navigate("/login", { replace: true });
-      }
-      try {
-        const res = await fetch("http://localhost:3000/api/home/home", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          cache: 'no-store'
-        })
-        if (!res.ok) {
-          setError('Unauthorized');
-          return;
-        }
-        setReady(true)
-      }
-      catch {
-        navigate("/login", { replace: true })
-      }
+    const token = localStorage.getItem('token');
+    if (!token || !isTokenValid(token)) {
+      navigate('/login', { replace: true });
+      return;
     }
-    verify();
-  }, [navigate])
-
-  // EFFECT 2: Data Retrieval Guard (Only runs AFTER the user passes Effect 1 cleanly)
-  useEffect(() => {
-    if (!ready) return;
-
-    const fetchGoalsData = async () => {
-      const token = localStorage.getItem('token');
-      try {
-        const goalsRes = await fetch("http://localhost:3000/api/savings", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (goalsRes.ok) {
-          const data = await goalsRes.json();
-          setGoals(data);
-        } else {
-          console.error("Backend endpoint returned error status:", goalsRes.status);
-        }
-      } catch (err) {
-        console.error("Database server connection failed:", err);
-      }
-    };
-    fetchGoalsData();
-  }, [ready]);
+    fetch(`${API}/savings`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : []))
+      .then(data => setGoals(Array.isArray(data) ? data : []))
+      .catch(err => console.error('Failed to load savings goals:', err))
+      .finally(() => setLoaded(true));
+  }, [navigate]);
 
   const suggestions = [
-    { label: 'Fun Vacation',    Icon: MdBeachAccess },
-    { label: 'Fancy Dinner',    Icon: MdWineBar },
-    { label: 'New Laptop',      Icon: MdLaptopMac },
-    { label: 'New Phone',       Icon: MdPhoneAndroid },
-    { label: 'Emergency Fund',  Icon: RiFirstAidKitLine },
+    { label: 'Fun Vacation',    Icon: TbBeach },
+    { label: 'Fancy Dinner',    Icon: TbGlassFull },
+    { label: 'New Laptop',      Icon: TbDeviceLaptop },
+    { label: 'New Phone',       Icon: TbDeviceMobile },
+    { label: 'Emergency Fund',  Icon: TbFirstAidKit },
   ];
 
   const openModal = () => {
@@ -115,12 +90,16 @@ const Savings = () => {
     if (!updateAmount || isNaN(updateAmount) || Number(updateAmount) <= 0)
       return setUpdateError('Please enter a valid amount.');
 
+    // Catch over-withdrawing before it ever reaches the server
+    if (updateAction === 'deduct' && Number(updateAmount) > Number(selectedGoal.current_amount))
+      return setUpdateError(`You only have $${Number(selectedGoal.current_amount).toFixed(2)} saved in this goal.`);
+
     setUpdating(true);
     const token = localStorage.getItem('token');
     const amount = updateAction === 'deduct' ? -Number(updateAmount) : Number(updateAmount);
 
     try {
-      const res = await fetch(`http://localhost:3000/api/savings/${selectedGoal.goal_id}`, {
+      const res = await fetch(`${API}/savings/${selectedGoal.goal_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +131,7 @@ const Savings = () => {
   const handleDeleteGoal = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:3000/api/savings/${goalToDelete}`, {
+      const res = await fetch(`${API}/savings/${goalToDelete}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -180,7 +159,7 @@ const Savings = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch("http://localhost:3000/api/savings", {
+      const res = await fetch(`${API}/savings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -210,24 +189,14 @@ const Savings = () => {
     }
   };
 
-  // Hero spotlight: the unfinished goal closest to completion — the next best win
-  const closestGoal = goals
-    .filter(g => Number(g.target_amount) > 0 && Number(g.current_amount) < Number(g.target_amount))
-    .reduce((best, g) => {
-      const pct = Number(g.current_amount) / Number(g.target_amount);
-      return !best || pct > best.pct ? { goal: g, pct } : best;
-    }, null);
+  // Hero headline: everything saved across all goals combined
+  const totalSaved = goals.reduce((sum, g) => sum + Number(g.current_amount), 0);
+  const totalTarget = goals.reduce((sum, g) => sum + Number(g.target_amount), 0);
 
-  // What the hero's progress bar tracks: the spotlighted goal's progress,
-  // full when everything's reached, empty when there are no goals yet
-  const heroPct = closestGoal ? closestGoal.pct * 100 : goals.length > 0 ? 100 : 0;
-
-  if (error) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1 className="text-2xl font-bold">{error}</h1>
-    </div>
-  );
-  if (!ready) return null;
+  // What the hero's progress bar tracks: total saved against the summed
+  // targets, capped at 100%, empty when there are no goals yet
+  const heroPct =
+    goals.length === 0 ? 0 : totalTarget > 0 ? Math.min((totalSaved / totalTarget) * 100, 100) : 100;
 
   return (
     <div className="min-h-screen bg-brand-white pb-24 md:pb-6">
@@ -237,11 +206,16 @@ const Savings = () => {
         className="relative px-5 md:px-8 pt-12 md:pt-10 pb-10 min-h-45 bg-brand-base"
         style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
       >
+<<<<<<< HEAD
         <div className="absolute top-12 right-5 md:right-8 flex items-center gap-3">
           <div className="h-12 flex flex-col justify-center text-right">
             <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Active Goals</p>
             <p className="text-white text-xl font-causten font-extrabold leading-none">{goals.length}</p>
           </div>
+=======
+        <div className="absolute top-12 right-5 flex items-center gap-3">
+          <NotificationBell />
+>>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
           <button
             onClick={() => navigate('/profile')}
             className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
@@ -252,6 +226,7 @@ const Savings = () => {
           </button>
         </div>
 
+<<<<<<< HEAD
         <div className="mb-6 md:mb-8 md:flex md:justify-between md:items-end pr-40">
           <div>
             <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
@@ -269,27 +244,35 @@ const Savings = () => {
         {/* Next-goal hero */}
         <div className="relative bg-white/15 rounded-2xl px-4 md:px-6 pt-9 pb-11 text-center md:max-w-xl md:mx-auto">
           {closestGoal ? (
+=======
+        <div className="mb-3 pr-40">
+          <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
+          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Savings</h1>
+        </div>
+
+        {/* Next-goal hero — spotlights the goal closest to completion, its
+            progress bar filling along the bottom edge. min-h + centering keeps
+            the box the same height across all states (goals vs empty). */}
+        <div className="relative bg-white/15 rounded-2xl px-4 pt-6 pb-9 text-center flex flex-col justify-center min-h-44">
+          {!loaded ? null : goals.length > 0 ? (
+>>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
             <>
-              <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2 truncate px-2">
-                {closestGoal.goal.goal_name}
+              <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">
+                Total saved · {goals.length} {goals.length === 1 ? 'goal' : 'goals'}
               </p>
-              <p className="text-white text-6xl font-causten font-extrabold tracking-tight">
-                ${(Number(closestGoal.goal.target_amount) - Number(closestGoal.goal.current_amount)).toFixed(2)}
+              <p className="text-white text-5xl font-causten font-extrabold tracking-tight">
+                ${totalSaved.toFixed(2)}
               </p>
-              <p className="text-white/60 text-sm font-causten mt-2">
-                to go · {Math.round(closestGoal.pct * 100)}% saved
-              </p>
-            </>
-          ) : goals.length > 0 ? (
-            <>
-              <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">All goals reached</p>
-              <p className="text-white text-6xl font-causten font-extrabold tracking-tight">🎉</p>
-              <p className="text-white/60 text-sm font-causten mt-2">Time to dream up the next one</p>
+              {totalTarget > 0 && (
+                <p className="text-white/60 text-sm font-causten mt-2">
+                  of ${totalTarget.toFixed(2)} · {Math.round((totalSaved / totalTarget) * 100)}%
+                </p>
+              )}
             </>
           ) : (
             <>
               <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">No goals yet</p>
-              <p className="text-white text-4xl font-causten font-extrabold tracking-tight">Save for something</p>
+              <p className="text-white text-3xl font-causten font-extrabold tracking-tight">Save for something</p>
               <p className="text-white/60 text-sm font-causten mt-2">Tap + to create your first goal</p>
             </>
           )}
@@ -310,15 +293,25 @@ const Savings = () => {
         <p className="font-causten font-bold text-brand-dark-violet text-xl mb-2">
           People often save for
         </p>
+<<<<<<< HEAD
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide md:grid md:grid-cols-5 md:overflow-visible">
+=======
+        {/* pt/px make room inside the scroll clip for the 4px hover outline + lift;
+            negative margins cancel them out so the strip still lines up */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pt-2 -mt-2 px-2 -mx-2 pb-2">
+>>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
           {suggestions.map((s) => (
             <button
               key={s.label}
               onClick={() => openModalWithSuggestion(s.label)}
+<<<<<<< HEAD
               className="shrink-0 md:shrink bg-white rounded-xl shadow-sm hover:bg-brand-dark-violet hover:shadow-md transition-all group px-4 py-3 flex flex-col items-center gap-1.5 min-w-24 md:min-w-0 active:scale-95"
+=======
+              className="shrink-0 bg-white rounded-xl shadow-sm px-4 py-3 flex flex-col items-center gap-1.5 min-w-24 active:scale-95 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet"
+>>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
             >
-              <s.Icon className="w-8 h-8 text-brand-dark-violet group-hover:text-white transition-colors" />
-              <span className="text-[10px] font-causten font-bold text-brand-dark-violet group-hover:text-white text-center uppercase leading-tight transition-colors">
+              <s.Icon className="w-8 h-8 text-brand-dark-violet" />
+              <span className="text-[10px] font-causten font-bold text-brand-dark-violet text-center uppercase leading-tight">
                 {s.label}
               </span>
             </button>
@@ -331,19 +324,37 @@ const Savings = () => {
         <div className="flex justify-between items-center mb-3">
           <p className="font-causten font-bold text-brand-dark-violet text-xl">Your Goals</p>
           {goals.length > 0 && (
-            <p className="text-xs text-gray-400">{goals.length} active</p>
+            <p className="text-xs text-brand-dark-violet/60">{goals.length} active</p>
           )}
         </div>
 
+<<<<<<< HEAD
         <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
           {goals.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-4 md:col-span-2">
+=======
+        {/* Full-width add bar — same anatomy as Monthly Budget's "+ Add an expense" */}
+        <button
+          onClick={openModal}
+          className="w-full mb-4 py-4 bg-brand-dark-violet text-white rounded-2xl shadow-lg font-causten font-bold text-sm hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-xl transition-all duration-150 active:scale-95"
+        >
+          + Add a goal
+        </button>
+
+        <div className="flex flex-col gap-4">
+          {!loaded ? null : goals.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-4">
+>>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
               <div className="bg-brand-light-pink rounded-full p-6">
                 <LiaPiggyBankSolid className="w-16 h-16 text-brand-dark-violet" />
               </div>
               <div className="text-center">
                 <p className="text-brand-dark-violet font-causten font-bold text-base">No goals yet</p>
+<<<<<<< HEAD
                 <p className="text-gray-300 text-xs mt-1">Click "New Goal" to start saving toward something</p>
+=======
+                <p className="text-brand-dark-violet/45 text-xs mt-1">Add a goal to start saving toward something</p>
+>>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
               </div>
             </div>
           ) : (
@@ -362,6 +373,7 @@ const Savings = () => {
 
       </div>
 
+<<<<<<< HEAD
       {/* Floating + Button — mobile only */}
       <button
         onClick={openModal}
@@ -384,90 +396,90 @@ const Savings = () => {
               <div className="w-10 h-1 rounded-full bg-white/30 mx-auto md:hidden mb-4" />
               <p className="text-white/60 text-xs font-causten font-semibold uppercase tracking-widest mb-1">
                 {updateAction === 'add' ? 'Adding to' : 'Deducting from'}
+=======
+      {/* Add / Withdraw Savings sheet — same anatomy as the Edit Expense and
+          Add Preset sheets: white sheet, title + × row, underline amount
+          field, one solid action button */}
+      {updateModal && selectedGoal && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-55" onClick={() => !updating && setUpdateModal(false)} />
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-60 px-5 pt-5 pb-10 shadow-2xl animate-slide-up">
+            <div className="flex justify-between items-center mb-5">
+              <p className="font-causten font-bold text-brand-dark-violet text-lg">
+                {updateAction === 'add' ? 'Add to' : 'Withdraw from'} {selectedGoal.goal_name}
+>>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
               </p>
-              <h2 className="text-white text-2xl font-causten font-extrabold uppercase mb-4">
-                {selectedGoal.goal_name}
-              </h2>
+              <button onClick={() => !updating && setUpdateModal(false)}>
+                <TbX className="w-5 h-5 text-brand-dark-violet/60" />
+              </button>
+            </div>
 
-              {/* Current vs Target */}
-              <div className="flex justify-between items-end mb-2">
-                <div>
-                  <p className="text-white/50 text-xs font-causten">Saved so far</p>
-                  <p className="text-white text-xl font-causten font-bold">
+            <div className="space-y-4">
+              {/* Where the goal stands: saved / target over its progress bar */}
+              <div>
+                <div className="flex justify-between items-baseline mb-1">
+                  <p className="text-xs text-brand-dark-violet/80 uppercase tracking-wider">Saved so far</p>
+                  <p className="text-xs text-brand-dark-violet/80 uppercase tracking-wider">Target</p>
+                </div>
+                <div className="flex justify-between items-baseline mb-2">
+                  <p className="font-causten font-bold text-brand-dark-violet">
                     ${Number(selectedGoal.current_amount).toFixed(2)}
                   </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-white/50 text-xs font-causten">Target</p>
-                  <p className="text-white text-xl font-causten font-bold">
+                  <p className="font-causten font-bold text-brand-dark-violet">
                     ${Number(selectedGoal.target_amount).toFixed(2)}
                   </p>
                 </div>
+                <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-brand-base transition-all duration-500"
+                    style={{
+                      width: `${Math.min((Number(selectedGoal.current_amount) / Number(selectedGoal.target_amount)) * 100, 100)}%`
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Progress bar */}
-              <div className="w-full h-2 rounded-full bg-white/20">
-                <div
-                  className="h-2 rounded-full bg-brand-light-pink transition-all duration-500"
-                  style={{
-                    width: `${Math.min((Number(selectedGoal.current_amount) / Number(selectedGoal.target_amount)) * 100, 100)}%`
-                  }}
-                />
-              </div>
-              <p className="text-white/50 text-xs font-causten mt-1 text-right">
-                {Math.min((Number(selectedGoal.current_amount) / Number(selectedGoal.target_amount)) * 100, 100).toFixed(1)}%
-              </p>
-            </div>
-
-            {/* Input section */}
-            <div className="px-6 pt-5 pb-10 flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                  Amount ($)
-                </label>
-                <input
-                  type="number"
-                  value={updateAmount}
-                  onChange={e => setUpdateAmount(e.target.value)}
-                  placeholder="0.00"
-                  min="0"
-                  className="border-2 border-gray-200 rounded-xl px-4 py-3 text-brand-dark-violet
-                             font-causten focus:outline-none focus:border-brand-dark-violet transition-colors"
-                />
-              </div>
-
-              {updateError && <p className="text-red-500 text-sm font-causten">{updateError}</p>}
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setUpdateModal(false)}
-                  disabled={updating}
-                  className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-500
-                             font-causten font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateGoal}
-                  disabled={updating}
-                  className="flex-1 py-3 rounded-xl bg-brand-dark-violet text-white
-                             font-causten font-bold hover:bg-brand-dark-violet/90 transition-colors
-                             disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {updating ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Confirm'
-                  )}
-                </button>
+              <div>
+                <p className="text-sm text-brand-dark-violet/80 uppercase tracking-wider mb-1">Amount</p>
+                <div className="flex items-center gap-1 border-b border-gray-100 pb-2">
+                  <span className="text-2xl font-causten font-bold text-brand-dark-violet">$</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={updateAmount}
+                    onChange={e => setUpdateAmount(e.target.value)}
+                    placeholder="0.00"
+                    min="0"
+                    className="flex-1 text-2xl font-causten font-bold text-brand-dark-violet border-none outline-none bg-transparent placeholder-brand-dark-violet/30"
+                  />
+                </div>
+                <p className="text-xs text-brand-dark-violet/45 font-causten mt-1.5">
+                  {updateAction === 'add'
+                    ? "Comes out of this month's budget — your allowance will adjust."
+                    : "Goes back into this month's budget."}
+                </p>
               </div>
             </div>
 
+            {updateError && (
+              <p className="mt-4 text-sm text-red-400 font-causten text-center">{updateError}</p>
+            )}
+            <button
+              onClick={handleUpdateGoal}
+              disabled={updating || !updateAmount}
+              className="w-full mt-4 py-3 rounded-xl bg-brand-dark-violet text-white font-causten font-bold hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150 disabled:opacity-20 flex items-center justify-center gap-2"
+            >
+              {updating ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                updateAction === 'add' ? 'Add to savings' : 'Withdraw'
+              )}
+            </button>
           </div>
-        </div>
+        </>
       )}
 
       {/* Delete Confirmation Modal */}
@@ -475,17 +487,17 @@ const Savings = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="w-[80%] max-w-sm bg-white rounded-2xl px-6 py-8 shadow-2xl flex flex-col gap-3">
             <h2 className="font-causten font-bold text-brand-dark-violet text-xl">Delete Goal?</h2>
-            <p className="text-sm text-gray-500 font-causten">This will permanently remove the goal from your savings.</p>
+            <p className="text-sm text-brand-dark-violet/75 font-causten">This will permanently remove the goal from your savings.</p>
             <div className="flex gap-3 mt-2">
               <button
                 onClick={() => setGoalToDelete(null)}
-                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-500 font-causten font-bold hover:bg-gray-50 transition-colors"
+                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-brand-dark-violet/75 font-causten font-bold hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteGoal}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-causten font-bold hover:bg-red-600 transition-colors"
+                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-causten font-bold hover:bg-red-600 hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150"
               >
                 Delete
               </button>
@@ -515,7 +527,7 @@ const Savings = () => {
             <div className="flex flex-col gap-4">
               {/* Goal Name */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-brand-dark-violet/75 uppercase tracking-widest">
                   Goal Name
                 </label>
                 <input
@@ -531,7 +543,7 @@ const Savings = () => {
 
               {/* Target Amount */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-brand-dark-violet/75 uppercase tracking-widest">
                   Target Amount ($)
                 </label>
                 <input
@@ -548,8 +560,8 @@ const Savings = () => {
 
               {/* Current Savings */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                  Current Savings ($) <span className="normal-case text-gray-400 font-normal">(optional)</span>
+                <label className="text-xs font-bold text-brand-dark-violet/75 uppercase tracking-widest">
+                  Current Savings ($) <span className="normal-case text-brand-dark-violet/60 font-normal">(optional)</span>
                 </label>
                 <input
                   type="number"
@@ -565,8 +577,8 @@ const Savings = () => {
 
               {/* Target Date */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                  Target Date <span className="normal-case text-gray-400 font-normal">(optional)</span>
+                <label className="text-xs font-bold text-brand-dark-violet/75 uppercase tracking-widest">
+                  Target Date <span className="normal-case text-brand-dark-violet/60 font-normal">(optional)</span>
                 </label>
                 <input
                   type="date"
@@ -588,8 +600,8 @@ const Savings = () => {
                 <button
                   onClick={closeModal}
                   disabled={submitting}
-                  className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-500
-                             font-causten font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-brand-dark-violet/75
+                             font-causten font-bold hover:border-brand-dark-violet hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -597,7 +609,7 @@ const Savings = () => {
                   onClick={handleAddGoal}
                   disabled={submitting}
                   className="flex-1 py-3 rounded-xl bg-brand-dark-violet text-white
-                             font-causten font-bold hover:bg-brand-dark-violet/90 transition-colors
+                             font-causten font-bold hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-md active:scale-95 transition-all duration-150
                              disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? (

@@ -80,6 +80,9 @@ html::-webkit-scrollbar {
 }
 
 @theme {
+  /* Causten is the app-wide default — every element gets it without needing
+     the font-causten utility (which stays for explicit use) */
+  --font-sans: 'CaustenRound', ui-sans-serif, system-ui, sans-serif;
   --font-causten: 'CaustenRound', sans-serif;
 
   --color-brand-blue: #005CFF;
