@@ -22,14 +22,16 @@ const User = sequelize.define('User', {
         allowNull: false,
         field: 'password_hash'
      },
+     // 👇 only this line added
+     createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        field: 'created_at'   // optional – if your column is named 'created_at'
+     }
 
 },{
         tableName: 'users',
-        timestamps: false,
-        // Named explicitly so sync({ alter: true }) recognizes it as already
-        // existing on restart instead of adding a new duplicate unique index
-        // each time (the same bug ran budget_groups out of MySQL's 64-key
-        // limit once already).
+        timestamps: false,    // remains false – we handle it manually
         indexes: [
             { unique: true, fields: ['email'], name: 'users_email_unique' }
         ]

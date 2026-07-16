@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
 import { TbChevronLeft, TbChevronRight } from "react-icons/tb";
-=======
-import { TbChevronLeft, TbChevronRight, TbWallet, TbReceipt, TbPigMoney, TbShoppingCart } from "react-icons/tb";
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
 import ExpenseListItem from '../components/ExpenseListItem';
 import EditExpenseSheet from '../components/EditExpenseSheet';
 import CategoryManager from '../components/CategoryManager';
@@ -442,33 +438,6 @@ const Summary = () => {
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Tap-to-edit sheet — same shared sheet Daily Log uses. Budget items
-          (bills/planned) have no date field; daily spending does. */}
-      {editing && (
-        <EditExpenseSheet
-          expense={{ id: editing.id, amount: editing.amount, categoryId: editing.categoryId, name: editing.name, date: editing.date }}
-          categories={categories}
-          namePlaceholder={isBudgetType(editing.type) ? 'Description' : 'Note (optional)'}
-          showDate={!isBudgetType(editing.type)}
-          onRequestNewCategory={() => setShowCategoryForm(true)}
-          onSave={handleSaveEdit}
-          onDelete={handleDeleteEdit}
-          onClose={() => setEditing(null)}
-        />
-      )}
-
-      {showCategoryForm && (
-        <CategoryManager
-          categories={categories}
-          onAdd={handleAddCategory}
-          onDelete={handleDeleteCategory}
-          onClose={() => setShowCategoryForm(false)}
-        />
-      )}
-
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
     </div>
   );
 };

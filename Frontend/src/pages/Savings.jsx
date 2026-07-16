@@ -49,6 +49,9 @@ const Savings = () => {
       .finally(() => setLoaded(true));
   }, [navigate]);
 
+  // ----- FIX: define closestGoal so the hero section doesn't throw -----
+  const closestGoal = goals.length > 0 ? goals[0] : null;
+
   const suggestions = [
     { label: 'Fun Vacation',    Icon: TbBeach },
     { label: 'Fancy Dinner',    Icon: TbGlassFull },
@@ -206,16 +209,11 @@ const Savings = () => {
         className="relative px-5 md:px-8 pt-12 md:pt-10 pb-10 min-h-45 bg-brand-base"
         style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
       >
-<<<<<<< HEAD
         <div className="absolute top-12 right-5 md:right-8 flex items-center gap-3">
           <div className="h-12 flex flex-col justify-center text-right">
             <p className="text-white/60 text-xs font-causten font-bold uppercase tracking-widest leading-none mb-1">Active Goals</p>
             <p className="text-white text-xl font-causten font-extrabold leading-none">{goals.length}</p>
           </div>
-=======
-        <div className="absolute top-12 right-5 flex items-center gap-3">
-          <NotificationBell />
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
           <button
             onClick={() => navigate('/profile')}
             className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
@@ -226,7 +224,6 @@ const Savings = () => {
           </button>
         </div>
 
-<<<<<<< HEAD
         <div className="mb-6 md:mb-8 md:flex md:justify-between md:items-end pr-40">
           <div>
             <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
@@ -244,18 +241,6 @@ const Savings = () => {
         {/* Next-goal hero */}
         <div className="relative bg-white/15 rounded-2xl px-4 md:px-6 pt-9 pb-11 text-center md:max-w-xl md:mx-auto">
           {closestGoal ? (
-=======
-        <div className="mb-3 pr-40">
-          <p className="text-white/60 text-base font-causten">Hi, {userName}</p>
-          <h1 className="text-white text-3xl font-causten font-extrabold tracking-tight">Savings</h1>
-        </div>
-
-        {/* Next-goal hero — spotlights the goal closest to completion, its
-            progress bar filling along the bottom edge. min-h + centering keeps
-            the box the same height across all states (goals vs empty). */}
-        <div className="relative bg-white/15 rounded-2xl px-4 pt-6 pb-9 text-center flex flex-col justify-center min-h-44">
-          {!loaded ? null : goals.length > 0 ? (
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
             <>
               <p className="text-white/60 text-lg font-causten font-bold uppercase tracking-wide mb-2">
                 Total saved · {goals.length} {goals.length === 1 ? 'goal' : 'goals'}
@@ -293,22 +278,12 @@ const Savings = () => {
         <p className="font-causten font-bold text-brand-dark-violet text-xl mb-2">
           People often save for
         </p>
-<<<<<<< HEAD
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide md:grid md:grid-cols-5 md:overflow-visible">
-=======
-        {/* pt/px make room inside the scroll clip for the 4px hover outline + lift;
-            negative margins cancel them out so the strip still lines up */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pt-2 -mt-2 px-2 -mx-2 pb-2">
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
           {suggestions.map((s) => (
             <button
               key={s.label}
               onClick={() => openModalWithSuggestion(s.label)}
-<<<<<<< HEAD
               className="shrink-0 md:shrink bg-white rounded-xl shadow-sm hover:bg-brand-dark-violet hover:shadow-md transition-all group px-4 py-3 flex flex-col items-center gap-1.5 min-w-24 md:min-w-0 active:scale-95"
-=======
-              className="shrink-0 bg-white rounded-xl shadow-sm px-4 py-3 flex flex-col items-center gap-1.5 min-w-24 active:scale-95 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 outline-4 outline-transparent hover:outline-brand-dark-violet"
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
             >
               <s.Icon className="w-8 h-8 text-brand-dark-violet" />
               <span className="text-[10px] font-causten font-bold text-brand-dark-violet text-center uppercase leading-tight">
@@ -328,33 +303,15 @@ const Savings = () => {
           )}
         </div>
 
-<<<<<<< HEAD
         <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
           {goals.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-4 md:col-span-2">
-=======
-        {/* Full-width add bar — same anatomy as Monthly Budget's "+ Add an expense" */}
-        <button
-          onClick={openModal}
-          className="w-full mb-4 py-4 bg-brand-dark-violet text-white rounded-2xl shadow-lg font-causten font-bold text-sm hover:bg-brand-base hover:-translate-y-0.5 hover:shadow-xl transition-all duration-150 active:scale-95"
-        >
-          + Add a goal
-        </button>
-
-        <div className="flex flex-col gap-4">
-          {!loaded ? null : goals.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-4">
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
               <div className="bg-brand-light-pink rounded-full p-6">
                 <LiaPiggyBankSolid className="w-16 h-16 text-brand-dark-violet" />
               </div>
               <div className="text-center">
                 <p className="text-brand-dark-violet font-causten font-bold text-base">No goals yet</p>
-<<<<<<< HEAD
                 <p className="text-gray-300 text-xs mt-1">Click "New Goal" to start saving toward something</p>
-=======
-                <p className="text-brand-dark-violet/45 text-xs mt-1">Add a goal to start saving toward something</p>
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
               </div>
             </div>
           ) : (
@@ -373,7 +330,6 @@ const Savings = () => {
 
       </div>
 
-<<<<<<< HEAD
       {/* Floating + Button — mobile only */}
       <button
         onClick={openModal}
@@ -396,18 +352,6 @@ const Savings = () => {
               <div className="w-10 h-1 rounded-full bg-white/30 mx-auto md:hidden mb-4" />
               <p className="text-white/60 text-xs font-causten font-semibold uppercase tracking-widest mb-1">
                 {updateAction === 'add' ? 'Adding to' : 'Deducting from'}
-=======
-      {/* Add / Withdraw Savings sheet — same anatomy as the Edit Expense and
-          Add Preset sheets: white sheet, title + × row, underline amount
-          field, one solid action button */}
-      {updateModal && selectedGoal && (
-        <>
-          <div className="fixed inset-0 bg-black/30 z-55" onClick={() => !updating && setUpdateModal(false)} />
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-60 px-5 pt-5 pb-10 shadow-2xl animate-slide-up">
-            <div className="flex justify-between items-center mb-5">
-              <p className="font-causten font-bold text-brand-dark-violet text-lg">
-                {updateAction === 'add' ? 'Add to' : 'Withdraw from'} {selectedGoal.goal_name}
->>>>>>> 5162e95e6a751d48b635acf7198717970c9b032c
               </p>
               <button onClick={() => !updating && setUpdateModal(false)}>
                 <TbX className="w-5 h-5 text-brand-dark-violet/60" />
@@ -479,7 +423,7 @@ const Savings = () => {
               )}
             </button>
           </div>
-        </>
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}

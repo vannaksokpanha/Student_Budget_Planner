@@ -1,0 +1,11 @@
+version: "3"
+agent:
+  authtoken: 3FjPg20uAV1FKUfPy7nHvYQaucm_3r8gT3dfwSunk4icZhcS
+tunnels:
+  # Only the frontend is exposed. Vite proxies /api to the backend internally,
+  # so we no longer need a separate backend tunnel.
+  frontend:
+    proto: http
+    addr: 5173
+    url: https://oxidation-barricade-purse.ngrok-free.dev
+  
