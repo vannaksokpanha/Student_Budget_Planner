@@ -62,7 +62,14 @@ const Signup = () => {
       {/* Desktop (>=md) */}
       <div className="hidden md:flex min-h-screen">
         {/* Left side */}
-        <div className="flex-1 bg-blue-500 flex flex-col items-center justify-center p-12 border-r border-white/20">
+        <div
+          className="flex-1 bg-brand-base flex flex-col items-center justify-center p-12 border-r border-white/20"
+          style={{
+            backgroundImage: "url('/Balance-Pattern.svg'), linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))",
+            backgroundSize: '1000px auto, auto',
+            backgroundRepeat: 'repeat, no-repeat'
+          }}
+        >
           <div className="text-center">
             <h1 className='text-6xl font-bold text-white mb-4'>Balance</h1>
             <p className='text-xl text-white/80 mb-1'>Bills are tucked away</p>
@@ -70,7 +77,7 @@ const Signup = () => {
           </div>
         </div>
         {/* Right Side */}
-        <div className="flex-2 bg-blue-500 flex items-center justify-center p-8 ">
+        <div className="flex-2 bg-brand-base flex items-center justify-center p-8 ">
           <div className="w-full max-w-md">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-12 border border-white/10">
               <div className=" mt-1">
@@ -143,7 +150,14 @@ const Signup = () => {
       </div>
 
       {/* Mobile (<md) */}
-      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 h-64'>
+      <div
+        className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base h-64'
+        style={{
+          backgroundImage: "url('/Balance-Pattern.svg'), linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))",
+          backgroundSize: '1000px auto, auto',
+          backgroundRepeat: 'repeat, no-repeat'
+        }}
+      >
         <div className="w-full max-w-sm">
 
           {/* Header */}

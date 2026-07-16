@@ -216,9 +216,9 @@ const Savings = () => {
           </div>
           <button
             onClick={() => navigate('/profile')}
-            className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0"
+            className="w-12 h-12 rounded-full bg-white hover:bg-white/90 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
           >
-            <span className="text-white font-causten font-bold text-base">
+            <span className="text-brand-dark-violet font-causten font-bold text-base">
               {userName.charAt(0).toUpperCase()}
             </span>
           </button>

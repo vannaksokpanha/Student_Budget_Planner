@@ -144,7 +144,14 @@ const Login = () => {
       </div>
 
       {/* Mobile (<md) */}
-      <div className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base bg-linear-to-b from-brand-blue/30 to-brand-white/30 h-64'>
+      <div
+        className='md:hidden min-h-screen flex items-center justify-center p-4 bg-brand-base h-64'
+        style={{
+          backgroundImage: "url('/Balance-Pattern.svg'), linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))",
+          backgroundSize: '1000px auto, auto',
+          backgroundRepeat: 'repeat, no-repeat'
+        }}
+      >
         <div className="w-full max-w-sm">
 
           {/* Header */}

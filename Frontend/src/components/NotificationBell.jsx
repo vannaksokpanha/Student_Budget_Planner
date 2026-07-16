@@ -25,9 +25,9 @@ const NotificationBell = () => {
         <button
           onClick={() => setOpen(v => !v)}
           aria-label={`Notifications${alerts.length ? ` (${alerts.length})` : ''}`}
-          className="relative w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 active:scale-90 transition-all duration-150 flex items-center justify-center"
+          className="relative w-12 h-12 rounded-full bg-white hover:bg-white/90 active:scale-90 transition-all duration-150 flex items-center justify-center"
         >
-          <TbBell className="w-5 h-5 text-white" />
+          <TbBell className="w-5 h-5 text-brand-dark-violet" />
           {alerts.length > 0 && (
             <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1 rounded-full bg-orange-400 text-white text-[11px] font-causten font-bold flex items-center justify-center">
               {alerts.length}
@@ -36,7 +36,7 @@ const NotificationBell = () => {
         </button>
 
         {open && (
-          <div className="fixed left-5 right-5 top-26 bg-white rounded-2xl shadow-2xl z-60 overflow-hidden motion-safe:animate-dropdown origin-top">
+          <div className="fixed left-5 right-5 top-26 bg-white rounded-2xl shadow-2xl z-60 overflow-hidden">
             <p className="px-4 pt-4 pb-2 text-xs font-causten font-bold text-brand-dark-violet/60 uppercase tracking-widest">
               Alerts
             </p>

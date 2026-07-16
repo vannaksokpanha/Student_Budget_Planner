@@ -206,7 +206,9 @@ const Summary = () => {
   const spentSoFar = parseFloat(budgetNumbers?.spent_this_month) || 0;
   const teamSpent = parseFloat(budgetNumbers?.team_this_month) || 0;
   const leftToSpend = parseFloat(budgetNumbers?.available) || 0;
-  const showPool = income > 0;
+  // Always show the monthly pool, even before any income is set — it then
+  // reads as an all-zero starting state instead of hiding the headline card.
+  const showPool = true;
   const currentMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   // Share of income for the allocation bar's segments (clamped to ≥0)
@@ -233,9 +235,9 @@ const Summary = () => {
           <NotificationBell />
           <button
             onClick={() => navigate('/profile')}
-            className="w-12 h-12 rounded-full bg-white/20 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
+            className="w-12 h-12 rounded-full bg-white hover:bg-white/90 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
           >
-            <span className="text-white font-causten font-bold text-base">
+            <span className="text-brand-dark-violet font-causten font-bold text-base">
               {userName.charAt(0).toUpperCase()}
             </span>
           </button>

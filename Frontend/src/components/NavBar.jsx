@@ -1,8 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { navItems } from '../assets/FrontendAsset/asset';
 import { TbChevronsRight, TbChevronsLeft } from "react-icons/tb";
-import { TbMoneybag } from "react-icons/tb"; 
-import { TbLogout } from "react-icons/tb";  
+import { TbMoneybag } from "react-icons/tb";
+import { TbLogout } from "react-icons/tb";
 import { useUser } from '../Context/UserContext';
 const NavBar = ({isOpen,setIsOpen}) => {
     const navigate = useNavigate();
@@ -46,6 +46,7 @@ const NavBar = ({isOpen,setIsOpen}) => {
                 {/* Profile — under the logo */}
                 <div className="mx-3 mt-2">
                     <button
+                        onClick={() => navigate('/profile')}
                         title={!isOpen ? user.name : undefined}
                         className={`flex items-center gap-3 py-3 rounded-lg transition hover:bg-gray-50 w-full ${
                             isOpen
@@ -62,7 +63,7 @@ const NavBar = ({isOpen,setIsOpen}) => {
                         {isOpen && (
                             <div className="text-left min-w-0">
                                 <p className='font-semibold text-brand-dark-violet truncate'>{user.name}</p>
-                                <p onClick={()=> navigate('/profile')} className='text-xs text-gray-400 hover:text-brand-dark-violet'>View Profile</p>
+                                <p className='text-xs text-gray-400'>View Profile</p>
                             </div>
                         )}
                     </button>

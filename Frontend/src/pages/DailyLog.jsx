@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import { LiaPiggyBankSolid } from "react-icons/lia";
-import { TbX, TbPlus } from "react-icons/tb";
+import { TbX, TbPlus, TbCircleCheck } from "react-icons/tb";
 import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
 import EditExpenseSheet from '../components/EditExpenseSheet';
@@ -67,6 +67,10 @@ const DailyLog = () => {
   const [categories, setCategories] = useState([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [formPrefill, setFormPrefill] = useState(null);
+  // Brief "added" confirmation shown under the quick-add form; auto-clears
+  const [addConfirm, setAddConfirm] = useState('');
+  const addConfirmTimer = useRef(null);
+  useEffect(() => () => clearTimeout(addConfirmTimer.current), []);
   const navigate = useNavigate();
 
   const userName = localStorage.getItem('userName') || 'there';
@@ -140,6 +144,12 @@ const DailyLog = () => {
       // list, but it shrinks today's allowance via the carryover
       refreshBudgetNumbers();
     }
+
+    // Confirm inline under the form, then fade after a couple of seconds. A
+    // backdated entry won't show in today's list, so the message says so.
+    setAddConfirm(logDate === todayString() ? 'Expense added' : `Expense added on ${logDate}`);
+    clearTimeout(addConfirmTimer.current);
+    addConfirmTimer.current = setTimeout(() => setAddConfirm(''), 2500);
   };
 
   // Tapping a preset loads it into the quick-add form for review instead of
@@ -265,9 +275,9 @@ const DailyLog = () => {
           <NotificationBell />
           <button
             onClick={() => navigate('/profile')}
-            className="w-12 h-12 rounded-full bg-white/30 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
+            className="w-12 h-12 rounded-full bg-white hover:bg-white/90 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
           >
-            <span className="text-white font-causten font-extrabold text-lg">
+            <span className="text-brand-dark-violet font-causten font-extrabold text-lg">
               {userName.charAt(0).toUpperCase()}
             </span>
           </button>
@@ -319,21 +329,6 @@ const DailyLog = () => {
                 <p className="text-brand-dark-violet/60 text-xs font-causten font-bold uppercase tracking-widest">Allowance</p>
                 <p className="text-[11px] font-causten leading-tight mt-2">
                   <span className="text-brand-dark-violet/50">{`$${baseAllowance.toFixed(2)}/day`}</span>
-                  <span
-                    className={`font-semibold ${
-                      dailyBudget - baseAllowance > 0.005
-                        ? 'text-emerald-500'
-                        : dailyBudget - baseAllowance < -0.005
-                          ? 'text-orange-500'
-                          : 'text-brand-dark-violet/50'
-                    }`}
-                  >
-                    {dailyBudget - baseAllowance > 0.005
-                      ? `  + $${(dailyBudget - baseAllowance).toFixed(2)} saved`
-                      : dailyBudget - baseAllowance < -0.005
-                        ? `  − $${(baseAllowance - dailyBudget).toFixed(2)} behind`
-                        : '  on track'}
-                  </span>
                 </p>
               </div>
             )}
@@ -349,6 +344,20 @@ const DailyLog = () => {
               }}
             />
           </div>
+
+          {/* Carryover from earlier days: leftover raises today's allowance
+              above the base rate (green), earlier overspending drags it below
+              (orange). Only shown when there's a meaningful difference. */}
+          {baseAllowance > 0 && dailyBudget - baseAllowance > 0.005 && (
+            <p className="text-emerald-500 text-xs font-causten font-semibold mt-1.5">
+              + ${(dailyBudget - baseAllowance).toFixed(2)} leftover from earlier days added to today
+            </p>
+          )}
+          {baseAllowance > 0 && dailyBudget - baseAllowance < -0.005 && (
+            <p className="text-orange-500 text-xs font-causten font-semibold mt-1.5">
+              − ${(baseAllowance - dailyBudget).toFixed(2)} taken off today for earlier overspending
+            </p>
+          )}
 
           {remaining < 0 && (
             <p className="text-orange-500 text-xs font-causten font-semibold mt-1.5">
@@ -377,6 +386,12 @@ const DailyLog = () => {
               prefill={formPrefill}
               showDate
             />
+            {addConfirm && (
+              <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-emerald-600">
+                <TbCircleCheck className="w-4 h-4 shrink-0" />
+                <p className="text-sm font-causten font-bold">{addConfirm}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

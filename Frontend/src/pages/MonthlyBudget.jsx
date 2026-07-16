@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
-import { TbPencil, TbArrowBackUp, TbCalendarHeart, TbChevronDown } from "react-icons/tb";
+import { TbPencil, TbArrowBackUp, TbCalendarHeart, TbChevronDown, TbCircleCheck } from "react-icons/tb";
 import ExpenseForm from '../components/ExpenseForm';
 import CategoryManager from '../components/CategoryManager';
 import ExpenseListItem from '../components/ExpenseListItem';
@@ -154,6 +154,10 @@ const MonthlyBudget = () => {
   // Universal add form: whether it's open, and which section the new expense joins
   const [addOpen, setAddOpen] = useState(false);
   const [addType, setAddType] = useState('planned'); // 'bill' | 'planned'
+  // Brief "added" confirmation shown in the add card; auto-clears after a beat
+  const [addConfirm, setAddConfirm] = useState('');
+  const addConfirmTimer = useRef(null);
+  useEffect(() => () => clearTimeout(addConfirmTimer.current), []);
 
   // User's custom categories, shared across the app
   const [categories, setCategories] = useState([]);
@@ -257,6 +261,12 @@ const MonthlyBudget = () => {
     // bills" number recomputes itself from the list
     setExpenses(prev => [...prev, mapExpense(created)]);
     setDaysRemaining(created.new_days_remaining || 0);
+
+    // Confirm the add inline, then fade it after a couple of seconds. The ref
+    // guards against a rapid second add clearing the fresh message early.
+    setAddConfirm(`${isBill ? 'Monthly bill' : 'Planned expense'} added`);
+    clearTimeout(addConfirmTimer.current);
+    addConfirmTimer.current = setTimeout(() => setAddConfirm(''), 2500);
   };
 
   // Ticks an expense off as paid (or unticks it). Status only — the money was
@@ -393,9 +403,9 @@ const MonthlyBudget = () => {
           <NotificationBell />
           <button
             onClick={() => navigate('/profile')}
-            className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
+            className="w-12 h-12 rounded-full bg-white hover:bg-white/90 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0"
           >
-            <span className="text-white font-causten font-bold text-base">
+            <span className="text-brand-dark-violet font-causten font-bold text-base">
               {userName.charAt(0).toUpperCase()}
             </span>
           </button>
@@ -527,13 +537,10 @@ const MonthlyBudget = () => {
 
         {/* Universal add — one full-width button; a segmented switch picks the section */}
         {addOpen ? (
-          <div
-            className="bg-brand-base rounded-2xl shadow-lg px-5 py-5 origin-top motion-safe:animate-dropdown"
-            style={{ backgroundImage: 'linear-gradient(to bottom, rgba(0, 92, 255, 0.3), rgba(245, 245, 245, 0.3))' }}
-          >
+          <div className="bg-brand-dark-violet rounded-2xl shadow-lg px-5 py-5">
             <div className="flex justify-between items-center mb-3">
               <p className="text-sm font-causten font-bold text-white uppercase tracking-widest">Add an expense</p>
-              <button onClick={() => setAddOpen(false)} className="text-sm font-causten font-bold text-white/80 hover:text-white active:scale-95 transition-all duration-150">
+              <button onClick={() => { setAddOpen(false); setAddConfirm(''); }} className="text-sm font-causten font-bold text-white/80 hover:text-white active:scale-95 transition-all duration-150">
                 Cancel
               </button>
             </div>
@@ -564,6 +571,12 @@ const MonthlyBudget = () => {
               onSubmit={vals => handleAddExpense(vals, addType === 'bill')}
               alwaysShowDetails
             />
+            {addConfirm && (
+              <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-400/15 px-3 py-2 text-emerald-200">
+                <TbCircleCheck className="w-4 h-4 shrink-0" />
+                <p className="text-sm font-causten font-bold">{addConfirm}</p>
+              </div>
+            )}
           </div>
         ) : (
           <button

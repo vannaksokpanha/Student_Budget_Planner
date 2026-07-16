@@ -2,8 +2,7 @@
 
 
 body {
-  /* Poppins was never imported — CaustenRound is the app's actual brand face,
-     and with Regular (400) now loaded it can serve body text too */
+  /* CaustenRound is the app's brand face — used app-wide at every weight */
   font-family: 'CaustenRound', sans-serif;
 }
 
@@ -18,7 +17,12 @@ input:-webkit-autofill:focus {
 
 @font-face {
   font-family: 'CaustenRound';
-  src: url('/fonts/Causten-Regular.otf') format('opentype');
+  /* No rounded Regular file exists yet — the only 400-weight file
+     (Causten-Regular.otf) is the SHARP cut, which clashed with the rounded
+     bold weights. Point 400 at the rounded SemiBold so every weight is the
+     same rounded typeface. Drop in a real CaustenRound-Regular.otf here later
+     for a true lighter regular. */
+  src: url('/fonts/CaustenRound-SemiBold.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;

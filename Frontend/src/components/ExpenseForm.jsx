@@ -40,6 +40,11 @@ const ExpenseForm = ({
   const [categoryId, setCategoryId] = useState('');
   const [name, setName] = useState('');
   const [date, setDate] = useState(todayStr());
+  // Whether the user explicitly picked a date. Until they do, the entry is
+  // "today" — computed fresh at submit, never the value captured at mount.
+  // Without this, a page left open past midnight keeps yesterday's date and
+  // silently backdates new expenses to the wrong day.
+  const [dateTouched, setDateTouched] = useState(false);
 
   useEffect(() => {
     if (!prefill) return;
@@ -51,12 +56,16 @@ const ExpenseForm = ({
   const handleAdd = async () => {
     if (!amount || isNaN(parseFloat(amount))) return;
 
+    // Recompute "today" now, so an untouched date never goes stale across a
+    // midnight boundary; a user-picked date is clamped to today at the latest.
+    const today = todayStr();
+    const effectiveDate = dateTouched ? (date && date <= today ? date : today) : today;
+
     const ok = await onSubmit({
       amount: parseFloat(amount),
       category_id: categoryId || null,
       name,
-      // Clamp to today even if the browser let a future date through
-      ...(showDate ? { date: date && date <= todayStr() ? date : todayStr() } : {})
+      ...(showDate ? { date: effectiveDate } : {})
     });
     if (ok === false) return;
 
@@ -64,6 +73,7 @@ const ExpenseForm = ({
     setCategoryId('');
     setName('');
     setDate(todayStr());
+    setDateTouched(false);
   };
 
   return (
@@ -139,9 +149,9 @@ const ExpenseForm = ({
           {showDate && (
             <input
               type="date"
-              value={date}
+              value={dateTouched ? date : todayStr()}
               max={todayStr()}
-              onChange={e => setDate(e.target.value)}
+              onChange={e => { setDate(e.target.value); setDateTouched(true); }}
               aria-label="Date of expense"
               className={`w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 transition-shadow ${
                 dark

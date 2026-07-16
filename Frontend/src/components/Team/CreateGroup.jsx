@@ -61,7 +61,7 @@ const CreateGroup = ({ onClose, onSuccess }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black/30 z-55" onClick={dismiss} />
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-60 px-5 pt-5 pb-10 shadow-2xl animate-slide-up font-causten">
+      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-60 px-5 pt-5 pb-10 shadow-2xl font-causten">
         <div className="flex justify-between items-start mb-5">
           <div>
             <h2 className="text-xl font-causten font-bold text-brand-dark-violet">Create a group</h2>
