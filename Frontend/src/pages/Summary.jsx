@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { TbChevronLeft, TbChevronRight } from "react-icons/tb";
+import { TbChevronLeft, TbChevronRight, TbWallet, TbReceipt, TbPigMoney, TbShoppingCart, TbUsers } from "react-icons/tb";
 import ExpenseListItem from '../components/ExpenseListItem';
 import EditExpenseSheet from '../components/EditExpenseSheet';
 import CategoryManager from '../components/CategoryManager';
@@ -204,6 +204,7 @@ const Summary = () => {
   const reservedPlanned = parseFloat(budgetNumbers?.total_planned) || 0;
   const reservedSavings = parseFloat(budgetNumbers?.total_savings) || 0;
   const spentSoFar = parseFloat(budgetNumbers?.spent_this_month) || 0;
+  const teamSpent = parseFloat(budgetNumbers?.team_this_month) || 0;
   const leftToSpend = parseFloat(budgetNumbers?.available) || 0;
   const showPool = income > 0;
   const currentMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -260,7 +261,8 @@ const Summary = () => {
               { label: 'Monthly income', value: income, minus: false, Icon: TbWallet },
               { label: 'Bills & planned', value: reservedPlanned, minus: true, Icon: TbReceipt },
               { label: 'Savings', value: reservedSavings, minus: true, Icon: TbPigMoney },
-              { label: 'Pocket spending', value: spentSoFar, minus: true, Icon: TbShoppingCart }
+              { label: 'Pocket spending', value: spentSoFar, minus: true, Icon: TbShoppingCart },
+              { label: 'Team spending', value: teamSpent, minus: true, Icon: TbUsers }
             ].map(({ label, value, minus, Icon }) => (
               <div key={label} className="flex justify-between items-center py-1.5">
                 <div className="flex items-center gap-2.5 min-w-0">

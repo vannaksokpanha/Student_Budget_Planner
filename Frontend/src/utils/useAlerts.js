@@ -72,7 +72,8 @@ const useAlerts = () => {
       const planned = parseFloat(budget?.total_planned) || 0;
       const savings = parseFloat(budget?.total_savings) || 0;
       const spent = parseFloat(budget?.spent_this_month) || 0;
-      const overCommitted = planned + savings + spent - income;
+      const team = parseFloat(budget?.team_this_month) || 0;
+      const overCommitted = planned + savings + spent + team - income;
       if (income > 0 && overCommitted > 0.005) {
         found.push({
           id: 'over-committed',

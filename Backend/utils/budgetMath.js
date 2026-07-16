@@ -7,14 +7,16 @@ const Expense = require('../models/Expense');
 // this file — controllers only orchestrate queries and responses around it.
 
 // ── Expense type vocabulary ───────────────────────────────────────────────
-// The three kinds of Expense rows. BILL and PLANNED live on the Budget page
-// and reserve money from monthly income; DAILY is real spending logged on
-// the Daily Log page.
+// The kinds of Expense rows. BILL and PLANNED live on the Budget page and
+// reserve money from monthly income; DAILY is real spending logged on the
+// Daily Log page; GROUP is a contribution paid into a shared team budget,
+// which leaves the wallet just like daily spending does.
 const TYPES = {
   BILL: 'Monthly Bill',
   PLANNED: 'Expected Expense',
   DAILY: 'Daily Spending',
-  SAVINGS: 'Savings'
+  SAVINGS: 'Savings',
+  GROUP: 'Group Expense'
 };
 const BUDGET_TYPES = [TYPES.BILL, TYPES.PLANNED];
 // Everything that reserves money from monthly income before the allowance is
@@ -60,13 +62,18 @@ const expenseKey = (e) =>
 // whatever yesterday left unspent (or overspent) carries into today at full
 // value instead of being re-spread across the rest of the month.
 //
-//   pool (available) = income − planned − savings − all daily spending
+//   pool (available) = income − planned − savings − daily spending − team spending
 //   base_allowance   = (income − planned) ÷ days from the anchor to month end
 //                      (the plan rate each day accrues, shown as "$X/day")
 //   daily_allowance  = base × days elapsed − savings − spending before today
 //                      (everything accrued so far minus everything already
 //                      taken out of it; today's own spending is excluded —
 //                      the Record page subtracts it live)
+//
+// "Spending" here means both pocket spending and paid team contributions —
+// money that has left the wallet either way. They stay separate numbers in
+// the response so the Summary can itemize them, but both drain the pool.
+// A Pending contribution has not been paid in yet, so it counts for nothing.
 //
 // Underspending yesterday raises today's allowance by exactly the leftover;
 // overspending — or a savings deposit — eats into it dollar for dollar.
@@ -86,7 +93,7 @@ const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) =>
   const expenses = await Expense.findAll({
     where: {
       user_id: userId,
-      expense_type: { [Op.in]: [...RESERVED_TYPES, TYPES.DAILY] },
+      expense_type: { [Op.in]: [...RESERVED_TYPES, TYPES.DAILY, TYPES.GROUP] },
       expense_date: { [Op.between]: [start, end] }
     }
   });
@@ -97,10 +104,16 @@ const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) =>
   const sumWhere = (test) =>
     expenses.filter(test).reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
+  // A contribution only counts once it's actually been paid in; a Pending one
+  // is a promise, and no money has moved yet
+  const isPaidGroup = (e) => e.expense_type === TYPES.GROUP && e.contribution_status !== 'Pending';
+
   const totalPlanned = sumWhere(e => BUDGET_TYPES.includes(e.expense_type));
   const totalSavings = sumWhere(e => e.expense_type === TYPES.SAVINGS);
   const spentThisMonth = sumWhere(e => e.expense_type === TYPES.DAILY);
   const spentBeforeToday = sumWhere(e => e.expense_type === TYPES.DAILY && dateOf(e) < today);
+  const teamThisMonth = sumWhere(isPaidGroup);
+  const teamBeforeToday = sumWhere(e => isPaidGroup(e) && dateOf(e) < today);
 
   const income = parseFloat(monthlyIncome || 0);
 
@@ -121,18 +134,20 @@ const computeBudgetNumbers = async (userId, monthlyIncome, anchorDate = null) =>
   // Days that have accrued an allowance so far: anchor through today,
   // inclusive (0 if the budget's start date is still ahead)
   const daysElapsed = Math.max(0, now.getDate() - anchorDay + 1);
-  const accruedBeforeSpending = base * daysElapsed - totalSavings - spentBeforeToday;
+  const accruedBeforeSpending =
+    base * daysElapsed - totalSavings - spentBeforeToday - teamBeforeToday;
 
   return {
     daily_allowance: Math.max(0, accruedBeforeSpending),
     base_allowance: base,
-    available: Math.max(0, income - totalPlanned - totalSavings - spentThisMonth),
+    available: Math.max(0, income - totalPlanned - totalSavings - spentThisMonth - teamThisMonth),
     days_remaining: daysLeft,
     // The pool's ingredients, so pages can show HOW `available` was reached
-    // (income − planned − savings − spent) instead of just the result
+    // (income − planned − savings − spent − team) instead of just the result
     total_planned: totalPlanned,
     total_savings: totalSavings,
-    spent_this_month: spentThisMonth
+    spent_this_month: spentThisMonth,
+    team_this_month: teamThisMonth
   };
 };
 
@@ -149,7 +164,8 @@ const refreshBudget = async (userId) => {
       days_remaining: daysRemainingInMonth(),
       total_planned: 0,
       total_savings: 0,
-      spent_this_month: 0
+      spent_this_month: 0,
+      team_this_month: 0
     };
   }
   const numbers = await computeBudgetNumbers(userId, budget.monthly_income, budget.start_date);

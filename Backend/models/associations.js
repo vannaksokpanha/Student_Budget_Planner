@@ -30,6 +30,13 @@ ExpenseItem.belongsTo(Expense, { foreignKey: "expense_id", onDelete: "CASCADE" }
 User.hasMany(SavingGoal, { foreignKey: "user_id", onDelete: "CASCADE" });
 SavingGoal.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
 
+// Savings-type expense rows only: the goal a monthly reservation belongs to.
+// CASCADE so deleting a goal releases its reservations back to the budget —
+// SavingsController.delete_Goal already clears them by hand, this makes the
+// cleanup hold even on a code path that forgets.
+SavingGoal.hasMany(Expense, { foreignKey: "goal_id", onDelete: "CASCADE" });
+Expense.belongsTo(SavingGoal, { foreignKey: "goal_id", onDelete: "CASCADE" });
+
 User.hasMany(ExpensePreset, { foreignKey: "user_id", onDelete: "CASCADE" });
 ExpensePreset.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
 
